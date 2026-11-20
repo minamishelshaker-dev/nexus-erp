@@ -1,0 +1,114 @@
+--- nexus_original/nexus-erp/backend/app/main.py
++++ nexus_stage22_extract/nexus-erp/backend/app/main.py
+@@ -7,11 +7,12 @@
+ """
+ 
+ from contextlib import asynccontextmanager
+-from fastapi import FastAPI, Request, status
++from fastapi import FastAPI, HTTPException, Request, status
+ from fastapi.middleware.cors import CORSMiddleware
+ from fastapi.middleware.trustedhost import TrustedHostMiddleware
+ from fastapi.responses import JSONResponse
+ from fastapi.exceptions import RequestValidationError
++from sqlalchemy import text
+ from starlette.exceptions import HTTPException as StarletteHTTPException
+ import logging
+ import time
+@@ -210,17 +211,20 @@
+ @app.get("/health/ready", tags=["Health"])
+ async def readiness_check():
+     """Readiness check endpoint."""
+-    db_status = "healthy"
+     try:
+         async with db_manager.get_session() as session:
+-            await session.execute("SELECT 1")
+-    except Exception as e:
+-        db_status = f"unhealthy: {str(e)}"
+-    
++            await session.execute(text("SELECT 1"))
++    except Exception:
++        logger.exception("Database readiness check failed")
++        raise HTTPException(
++            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
++            detail="Database is not ready",
++        )
++
+     return {
+-        "status": "ready" if db_status == "healthy" else "not_ready",
++        "status": "ready",
+         "services": {
+-            "database": db_status,
++            "database": "healthy",
+             "api": "healthy",
+         }
+     }
+--- nexus_original/nexus-erp/backend/app/core/tenant_middleware.py
++++ nexus_stage22_extract/nexus-erp/backend/app/core/tenant_middleware.py
+@@ -227,22 +227,16 @@
+         
+         try:
+             payload = decode_token(token)
++            # Refresh, password-reset and verification tokens must never establish
++            # an authenticated tenant context.
++            if payload.get("type") != "access":
++                return None
++
+             tenant_id = payload.get("tenant_id")
+-            
+             if tenant_id:
+-                # Get additional tenant info from database
+-                tenant_info = await self._get_tenant_info(tenant_id)
+-                if tenant_info:
+-                    return tenant_info
+-                
+-                # Return minimal info from token if DB lookup fails
+-                return {
+-                    "tenant_id": tenant_id,
+-                    "slug": payload.get("tenant_slug", ""),
+-                    "subdomain": "",
+-                    "plan_type": "basic",
+-                    "features": {}
+-                }
++                # The database is the source of truth. Fail closed when the tenant
++                # is missing, inactive, deleted, or cannot be looked up.
++                return await self._get_tenant_info(tenant_id)
+         except Exception as e:
+             logger.debug(f"Token decode error in tenant resolution: {e}")
+         
+@@ -313,7 +307,7 @@
+                     text("""
+                         SELECT id, slug, subdomain, schema_name, plan_type, features, status
+                         FROM tenants
+-                        WHERE id = :tenant_id AND is_deleted = false
++                        WHERE id = :tenant_id AND is_deleted = false AND is_active = true
+                     """),
+                     {"tenant_id": tenant_id}
+                 )
+--- nexus_original/nexus-erp/docker-compose.yml
++++ nexus_stage22_extract/nexus-erp/docker-compose.yml
+@@ -17,7 +17,7 @@
+     restart: unless-stopped
+     environment:
+       POSTGRES_USER: ${POSTGRES_USER:-nexus_user}
+-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nexus_password}
++      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+       POSTGRES_DB: ${POSTGRES_DB:-nexus_erp}
+       PGDATA: /var/lib/postgresql/data/pgdata
+@@ -75,7 +75,7 @@
+     env_file:
+       - .env
+     environment:
+-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-nexus_user}:${POSTGRES_PASSWORD:-nexus_password}@postgres:5432/${POSTGRES_DB:-nexus_erp}
++      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-nexus_user}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-nexus_erp}
+@@ -116,7 +116,7 @@
+     env_file:
+       - .env
+     environment:
+-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-nexus_user}:${POSTGRES_PASSWORD:-nexus_password}@postgres:5432/${POSTGRES_DB:-nexus_erp}
++      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-nexus_user}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-nexus_erp}
+@@ -150,7 +150,7 @@
+     env_file:
+       - .env
+     environment:
+-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-nexus_user}:${POSTGRES_PASSWORD:-nexus_password}@postgres:5432/${POSTGRES_DB:-nexus_erp}
++      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-nexus_user}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-nexus_erp}
