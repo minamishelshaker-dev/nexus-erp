@@ -331,11 +331,11 @@ def upgrade() -> None:
     conn.execute(sa.text("""
         INSERT INTO plans (id, code, name, description, plan_type, is_active, is_public, 
                           monthly_price, yearly_price, max_users, max_storage_mb, max_products, 
-                          max_customers, trial_days, features)
+                          max_customers, trial_days, features, is_deleted)
         VALUES 
         (gen_random_uuid(), 'basic', 'Basic', 'Perfect for small businesses getting started', 
          'basic', true, true, 29, 290, 5, 1024, 100, 500, 14,
-         '{"inventory": true, "sales": true, "purchase": true, "accounting": true, "crm": true}'::jsonb),
+         '{"inventory": true, "sales": true, "purchase": true, "accounting": true, "crm": true}'::jsonb, false),
         (gen_random_uuid(), 'pro', 'Professional', 'Ideal for growing businesses', 
          'pro', true, true, 79, 790, 25, 10240, 1000, 5000, 14,
          '{"inventory": true, "sales": true, "purchase": true, "accounting": true, "crm": true, 
@@ -344,7 +344,7 @@ def upgrade() -> None:
          'enterprise', true, true, 199, 1990, -1, -1, -1, -1, 30,
          '{"inventory": true, "sales": true, "purchase": true, "accounting": true, "crm": true,
            "manufacturing": true, "ai_features": true, "api_access": true, "custom_reports": true,
-           "white_label": true, "dedicated_support": true, "custom_integrations": true, "sla": true}'::jsonb)
+           "white_label": true, "dedicated_support": true, "custom_integrations": true, "sla": true}'::jsonb, false)
     """))
 
 
