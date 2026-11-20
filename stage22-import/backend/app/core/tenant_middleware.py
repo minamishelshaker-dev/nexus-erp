@@ -227,22 +227,16 @@ class TenantMiddleware(BaseHTTPMiddleware):
         
         try:
             payload = decode_token(token)
+            # Refresh, password-reset and verification tokens must never establish
+            # an authenticated tenant context.
+            if payload.get("type") != "access":
+                return None
+
             tenant_id = payload.get("tenant_id")
-            
             if tenant_id:
-                # Get additional tenant info from database
-                tenant_info = await self._get_tenant_info(tenant_id)
-                if tenant_info:
-                    return tenant_info
-                
-                # Return minimal info from token if DB lookup fails
-                return {
-                    "tenant_id": tenant_id,
-                    "slug": payload.get("tenant_slug", ""),
-                    "subdomain": "",
-                    "plan_type": "basic",
-                    "features": {}
-                }
+                # The database is the source of truth. Fail closed when the tenant
+                # is missing, inactive, deleted, or cannot be looked up.
+                return await self._get_tenant_info(tenant_id)
         except Exception as e:
             logger.debug(f"Token decode error in tenant resolution: {e}")
         
@@ -313,7 +307,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
                     text("""
                         SELECT id, slug, subdomain, schema_name, plan_type, features, status
                         FROM tenants
-                        WHERE id = :tenant_id AND is_deleted = false
+                        WHERE id = :tenant_id AND is_deleted = false AND is_active = true
                     """),
                     {"tenant_id": tenant_id}
                 )
