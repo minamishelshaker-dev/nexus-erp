@@ -9,7 +9,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 revision = "create_journals_table"
-down_revision = "add_journal_source_idempotency"
+down_revision = "create_accounts_table"
 branch_labels = None
 depends_on = None
 
