@@ -25,11 +25,26 @@ The billing router is declared without router-level dependencies. The following 
 
 The public plan catalog endpoints (`GET /plans`, `GET /plans/{plan_id}`) can remain public if intended. The Stripe webhook (`POST /webhooks/stripe`) is expected to be public at the HTTP layer, but it must retain Stripe signature verification; the current handler checks for the signature header and calls the billing service verifier.
 
-## Required correction
+## Remediation applied on the isolated integration branch
 
-1. Derive tenant identity from the authenticated user/session, never from a caller-controlled `tenant_id` parameter for self-service operations.
-2. Add explicit billing permissions (owner/admin or a dedicated billing role) to every subscription, invoice, payment-method, and trial mutation/read operation.
-3. For `detach_payment_method`, resolve the payment method through the authenticated tenant's Stripe customer and verify ownership before detaching.
+A code change was committed to `stage22-import/backend/app/api/v1/endpoints/billing.py`:
+
+- Ten tenant-scoped subscription, checkout, portal, invoice, and payment-method routes now require the existing `admin.billing.manage` permission.
+- Those ten routes compare the requested tenant ID to the authenticated user's current tenant ID; mismatches return 404. Platform superusers retain explicit cross-tenant administrative access through the existing superuser identity flag.
+- Payment-method detachment now requires the platform superuser dependency because the route accepts only a Stripe payment-method ID and has no safe tenant ownership lookup.
+- Trial start and extension now require platform-superuser access; the prior caller-controlled tenant ID alone is no longer sufficient.
+- The public plan catalog remains public by design.
+- The Stripe webhook remains outside user-session auth and continues to verify the Stripe signature.
+
+The existing RBAC map explicitly grants `admin.billing.manage` to the platform admin role. Static re-read confirms the dependencies and tenant guards are present on all 13 previously identified sensitive operations.
+
+**Not yet runtime-tested:** role loading, Stripe test-mode behavior, endpoint-level cross-tenant negative tests, and FastAPI route registration. The change is not deployed.
+
+## Required follow-up tests
+
+1. Keep deriving tenant identity from the authenticated user/session and reject any caller-controlled tenant ID that does not match it.
+2. Validate the existing `admin.billing.manage` permission and platform-superuser restrictions against seeded production-like roles.
+3. If tenant self-service detachment is required later, resolve the payment method through the authenticated tenant's Stripe customer and verify ownership before detaching.
 4. Keep the Stripe webhook isolated from user-session auth, verify its signature, and make event processing idempotent.
 5. Add negative tests proving Tenant A cannot read, cancel, reactivate, attach, detach, start, or extend billing resources belonging to Tenant B.
 6. Review whether trial extension is a platform-admin-only operation rather than a tenant self-service operation.
