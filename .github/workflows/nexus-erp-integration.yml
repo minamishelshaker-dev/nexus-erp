@@ -46,7 +46,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Run billing authorization regression tests
-        run: pytest tests/test_billing_authorization.py -q
+        run: pytest --noconftest tests/test_billing_authorization.py -q
 
   frontend-build:
     name: Frontend TypeScript and Vite build
