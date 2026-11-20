@@ -63,3 +63,4 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Build frontend
         run: npm run build
+# CI rerun after fixing discovered frontend and accounting schema blockers.
