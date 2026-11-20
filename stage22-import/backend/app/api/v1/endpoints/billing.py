@@ -243,7 +243,6 @@ async def create_subscription(
     tenant_id: UUID,
     current_user: User = BILLING_ADMIN,
 ):
-    _ensure_current_tenant(current_user, tenant_id)
     """
     Create a new subscription for a tenant.
     
@@ -254,6 +253,7 @@ async def create_subscription(
     Returns:
         Subscription details including payment client secret
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -317,6 +317,7 @@ async def get_subscription(tenant_id: UUID, current_user: User = BILLING_ADMIN):
     Returns:
         Subscription details
     """
+    _ensure_current_tenant(current_user, tenant_id)
     async with db_manager.get_session() as db:
         result = await db.execute(
             select(Subscription).where(
@@ -377,8 +378,6 @@ async def cancel_subscription(
     reason: Optional[str] = None,
     current_user: User = BILLING_ADMIN,
 ):
-    _ensure_current_tenant(current_user, tenant_id)
-    _ensure_current_tenant(current_user, tenant_id)
     """
     Cancel a tenant's subscription.
     
@@ -390,6 +389,7 @@ async def cancel_subscription(
     Returns:
         Cancelled subscription details
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -440,6 +440,7 @@ async def reactivate_subscription(tenant_id: UUID, current_user: User = BILLING_
     Returns:
         Reactivated subscription details
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -485,8 +486,6 @@ async def create_checkout_session(
     tenant_id: UUID,
     current_user: User = BILLING_ADMIN,
 ):
-    _ensure_current_tenant(current_user, tenant_id)
-    _ensure_current_tenant(current_user, tenant_id)
     """
     Create a Stripe checkout session.
     
@@ -497,6 +496,7 @@ async def create_checkout_session(
     Returns:
         Checkout session URL
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -550,7 +550,6 @@ async def create_portal_session(
     return_url: str,
     current_user: User = BILLING_ADMIN,
 ):
-    _ensure_current_tenant(current_user, tenant_id)
     """
     Create a billing portal session for self-service.
     
@@ -561,6 +560,7 @@ async def create_portal_session(
     Returns:
         Portal session URL
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -604,7 +604,6 @@ async def list_invoices(
     starting_after: Optional[str] = None,
     current_user: User = BILLING_ADMIN,
 ):
-    _ensure_current_tenant(current_user, tenant_id)
     """
     List invoices for a tenant.
     
@@ -616,6 +615,7 @@ async def list_invoices(
     Returns:
         List of invoices
     """
+    _ensure_current_tenant(current_user, tenant_id)
     async with db_manager.get_session() as db:
         result = await db.execute(
             select(BillingInvoice)
@@ -657,6 +657,7 @@ async def get_invoice(tenant_id: UUID, invoice_id: UUID, current_user: User = BI
     Returns:
         Invoice details
     """
+    _ensure_current_tenant(current_user, tenant_id)
     async with db_manager.get_session() as db:
         result = await db.execute(
             select(BillingInvoice).where(
@@ -704,6 +705,7 @@ async def list_payment_methods(tenant_id: UUID, current_user: User = BILLING_ADM
     Returns:
         List of payment methods
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -737,9 +739,6 @@ async def attach_payment_method(
     data: PaymentMethodAttach,
     current_user: User = BILLING_ADMIN,
 ):
-    _ensure_current_tenant(current_user, tenant_id)
-    _ensure_current_tenant(current_user, tenant_id)
-    _ensure_current_tenant(current_user, tenant_id)
     """
     Attach a payment method to a tenant.
     
@@ -750,6 +749,7 @@ async def attach_payment_method(
     Returns:
         Attached payment method details
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -886,7 +886,6 @@ async def start_trial(
     plan_type: str = "pro",
     current_user: User = PLATFORM_ADMIN,
 ):
-    _ensure_current_tenant(current_user, tenant_id)
     """
     Start a trial period for a tenant.
     
@@ -897,6 +896,7 @@ async def start_trial(
     Returns:
         Trial details
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -945,7 +945,6 @@ async def extend_trial(
     additional_days: int = 7,
     current_user: User = PLATFORM_ADMIN,
 ):
-    _ensure_current_tenant(current_user, tenant_id)
     """
     Extend a trial period.
     
@@ -956,6 +955,7 @@ async def extend_trial(
     Returns:
         Updated trial details
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
