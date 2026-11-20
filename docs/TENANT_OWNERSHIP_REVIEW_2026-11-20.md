@@ -7,7 +7,7 @@ A table without a direct `tenant_id` column is not automatically a vulnerability
 
 ## Current ORM metadata finding
 
-The SQLAlchemy metadata contains 102 tables. **19 tables do not declare a direct `tenant_id` column.** They need an explicit ownership classification before enabling tenant middleware or considering production readiness.
+The SQLAlchemy metadata contains 102 tables. **20 tables do not declare a direct `tenant_id` column.** They need an explicit ownership classification before enabling tenant middleware or considering production readiness.
 
 | Table | Candidate ownership path / classification to verify |
 |---|---|
@@ -30,6 +30,7 @@ The SQLAlchemy metadata contains 102 tables. **19 tables do not declare a direct
 | `user_sessions` | user_id → users; verify user tenant and session revocation |
 | `workflow_approvals` | execution_id / step_id / approver_id; verify all related records share tenant |
 | `workflow_step_executions` | execution_id / step_id; verify parent workflow execution and step tenant |
+| `workflow_steps` | workflow_id; verify workflow tenant and all referenced approval/execution relationships |
 
 ## Required controls
 
