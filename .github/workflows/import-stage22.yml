@@ -6,7 +6,7 @@ on:
       archive_path:
         description: "Path of the uploaded ZIP in this branch"
         required: true
-        default: "incoming/Nexus_ERP_cloud_bootstrap_stage22(1).zip"
+        default: "incoming/Nexus_ERP_cloud_bootstrap_stage22.zip"
 
 permissions:
   contents: write
