@@ -45,3 +45,21 @@ jobs:
           pip install -r requirements.txt
       - name: Run billing authorization regression tests
         run: pytest tests/test_billing_authorization.py -q
+
+  frontend-build:
+    name: Frontend TypeScript and Vite build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: stage22-import/frontend
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install frontend dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build frontend
+        run: npm run build
