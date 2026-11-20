@@ -1,0 +1,35 @@
+# Isolated PostgreSQL instance for Nexus ERP development/verification only.
+# Start with: docker compose -f docker-compose.dev-db.yml up -d
+# This does NOT use or connect to any production database.
+services:
+  nexus-dev-postgres:
+    image: postgres:15-alpine
+    container_name: nexus-erp-dev-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${NEXUS_DEV_POSTGRES_USER:-nexus_dev}
+      POSTGRES_PASSWORD: ${NEXUS_DEV_POSTGRES_PASSWORD:?Set NEXUS_DEV_POSTGRES_PASSWORD in your shell/.env.dev}
+      POSTGRES_DB: ${NEXUS_DEV_POSTGRES_DB:-nexus_erp_dev}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "127.0.0.1:${NEXUS_DEV_POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - nexus_dev_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - nexus-dev-db
+
+volumes:
+  nexus_dev_postgres_data:
+    name: nexus_erp_dev_postgres_data
+
+networks:
+  nexus-dev-db:
+    name: nexus-erp-dev-db
+    internal: true
