@@ -168,13 +168,13 @@ class JournalItemResponse(BaseSchema):
     name: Optional[str] = None
     partner_id: Optional[UUID] = None
     analytic_account_id: Optional[UUID] = None
-    Date: date
+    date: Date
     notes: Optional[str] = None
 
 
 class JournalEntryCreate(BaseModel):
     """Schema for creating a journal entry."""
-    Date: date = Field(..., description="Entry date")
+    date: Date = Field(..., description="Entry date")
     ref: Optional[str] = Field(None, max_length=100, description="Reference number")
     move_type: str = Field(default="manual", description="Entry type")
     journal_id: Optional[UUID] = Field(None, description="Journal ID")
@@ -198,7 +198,7 @@ class JournalEntryCreate(BaseModel):
 
 class JournalEntryUpdate(BaseModel):
     """Schema for updating a journal entry."""
-    Date: Optional[Date] = None
+    date: Optional[Date] = None
     ref: Optional[str] = Field(None, max_length=100)
     description: Optional[str] = None
     narration: Optional[str] = None
@@ -220,7 +220,7 @@ class JournalEntryResponse(BaseSchema):
     id: UUID
     number: str
     ref: Optional[str] = None
-    Date: date
+    date: Date
     move_type: str
     state: str
     journal_id: Optional[UUID] = None
@@ -267,7 +267,7 @@ class JournalEntryPostRequest(BaseModel):
 
 class JournalEntryReverseRequest(BaseModel):
     """Request to reverse a journal entry."""
-    Date: Optional[Date] = Field(None, description="Reversal date")
+    date: Optional[Date] = Field(None, description="Reversal date")
     reason: Optional[str] = Field(None, description="Reversal reason")
 
 
@@ -277,7 +277,7 @@ class JournalEntryReverseRequest(BaseModel):
 
 class GeneralLedgerLine(BaseSchema):
     """Single line in general ledger report."""
-    Date: date
+    date: Date
     entry_number: str
     entry_id: UUID
     account_code: str
@@ -442,14 +442,14 @@ class BalanceSheetSection(BaseSchema):
 
 class BalanceSheetRequest(BaseModel):
     """Request for balance sheet."""
-    Date: date = Field(..., description="As of date")
+    date: Date = Field(..., description="As of date")
     comparison_date: Optional[Date] = Field(None, description="Comparison date")
     show_percentages: bool = Field(default=True)
 
 
 class BalanceSheetResponse(BaseModel):
     """Balance sheet response."""
-    Date: date
+    date: Date
     comparison_date: Optional[Date] = None
     generated_at: datetime
     
