@@ -5,7 +5,7 @@ Nexus ERP - Sales Module Schemas
 Pydantic schemas for the Sales module API.
 """
 
-from datetime import datetime, date
+from datetime import datetime, date as Date
 from typing import Optional, List
 from decimal import Decimal
 from uuid import UUID
@@ -72,7 +72,7 @@ class QuotationLineBase(BaseModel):
     price_unit: Decimal = Field(..., ge=0)
     discount: Decimal = Field(default=Decimal("0"), ge=0, le=100)
     tax_ids: List[str] = Field(default_factory=list)
-    date_planned: Optional[date] = None
+    date_planned: Optional[Date] = None
     notes: Optional[str] = None
 
 
@@ -90,7 +90,7 @@ class QuotationLineUpdate(BaseModel):
     price_unit: Optional[Decimal] = Field(None, ge=0)
     discount: Optional[Decimal] = Field(None, ge=0, le=100)
     tax_ids: Optional[List[str]] = None
-    date_planned: Optional[date] = None
+    date_planned: Optional[Date] = None
     notes: Optional[str] = None
 
 
@@ -120,8 +120,8 @@ class QuotationBase(BaseModel):
     partner_id: UUID
     partner_shipping_id: Optional[UUID] = None
     partner_invoice_id: Optional[UUID] = None
-    date: date
-    valid_until: Optional[date] = None
+    date: Date
+    valid_until: Optional[Date] = None
     payment_term_id: Optional[UUID] = None
     warehouse_id: Optional[UUID] = None
     salesperson_id: Optional[UUID] = None
@@ -150,8 +150,8 @@ class QuotationUpdate(BaseModel):
     partner_id: Optional[UUID] = None
     partner_shipping_id: Optional[UUID] = None
     partner_invoice_id: Optional[UUID] = None
-    date: Optional[date] = None
-    valid_until: Optional[date] = None
+    date: Optional[Date] = None
+    valid_until: Optional[Date] = None
     payment_term_id: Optional[UUID] = None
     warehouse_id: Optional[UUID] = None
     salesperson_id: Optional[UUID] = None
@@ -204,7 +204,7 @@ class SaleOrderLineBase(BaseModel):
     price_unit: Decimal = Field(..., ge=0)
     discount: Decimal = Field(default=Decimal("0"), ge=0, le=100)
     tax_ids: List[str] = Field(default_factory=list)
-    date_planned: Optional[date] = None
+    date_planned: Optional[Date] = None
     analytic_account_id: Optional[UUID] = None
     notes: Optional[str] = None
 
@@ -223,7 +223,7 @@ class SaleOrderLineUpdate(BaseModel):
     price_unit: Optional[Decimal] = Field(None, ge=0)
     discount: Optional[Decimal] = Field(None, ge=0, le=100)
     tax_ids: Optional[List[str]] = None
-    date_planned: Optional[date] = None
+    date_planned: Optional[Date] = None
     analytic_account_id: Optional[UUID] = None
     notes: Optional[str] = None
 
@@ -256,8 +256,8 @@ class SaleOrderBase(BaseModel):
     partner_id: UUID
     partner_shipping_id: Optional[UUID] = None
     partner_invoice_id: Optional[UUID] = None
-    date_order: date
-    date_planned: Optional[date] = None
+    date_order: Date
+    date_planned: Optional[Date] = None
     payment_term_id: Optional[UUID] = None
     warehouse_id: Optional[UUID] = None
     salesperson_id: Optional[UUID] = None
@@ -281,8 +281,8 @@ class SaleOrderUpdate(BaseModel):
     partner_id: Optional[UUID] = None
     partner_shipping_id: Optional[UUID] = None
     partner_invoice_id: Optional[UUID] = None
-    date_order: Optional[date] = None
-    date_planned: Optional[date] = None
+    date_order: Optional[Date] = None
+    date_planned: Optional[Date] = None
     payment_term_id: Optional[UUID] = None
     warehouse_id: Optional[UUID] = None
     salesperson_id: Optional[UUID] = None
@@ -309,7 +309,7 @@ class SaleOrderResponse(SaleOrderBase):
     amount_residual: Decimal
     delivery_status: str
     invoice_status: str
-    date_confirm: Optional[date]
+    date_confirm: Optional[Date]
     confirmed_at: Optional[datetime]
     done_at: Optional[datetime]
     created_at: datetime
@@ -391,8 +391,8 @@ class InvoiceBase(BaseModel):
     invoice_type: InvoiceTypeEnum
     partner_id: UUID
     partner_shipping_id: Optional[UUID] = None
-    date_invoice: date
-    date_due: Optional[date] = None
+    date_invoice: Date
+    date_due: Optional[Date] = None
     payment_term_id: Optional[UUID] = None
     journal_id: Optional[UUID] = None
     currency_id: Optional[UUID] = None
@@ -414,8 +414,8 @@ class InvoiceUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     partner_id: Optional[UUID] = None
     partner_shipping_id: Optional[UUID] = None
-    date_invoice: Optional[date] = None
-    date_due: Optional[date] = None
+    date_invoice: Optional[Date] = None
+    date_due: Optional[Date] = None
     payment_term_id: Optional[UUID] = None
     journal_id: Optional[UUID] = None
     currency_id: Optional[UUID] = None
@@ -439,7 +439,7 @@ class InvoiceResponse(InvoiceBase):
     amount_total: Decimal
     amount_residual: Decimal
     amount_paid: Decimal
-    date_posted: Optional[date]
+    date_posted: Optional[Date]
     posted_at: Optional[datetime]
     journal_entry_id: Optional[UUID]
     created_at: datetime
@@ -474,7 +474,7 @@ class PaymentBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     payment_type: PaymentTypeEnum
     partner_id: UUID
-    date: date
+    date: Date
     amount: Decimal = Field(..., gt=0)
     currency_id: Optional[UUID] = None
     payment_method_id: Optional[UUID] = None
@@ -494,7 +494,7 @@ class PaymentCreate(PaymentBase):
 class PaymentUpdate(BaseModel):
     """Schema for updating payment."""
     name: Optional[str] = Field(None, min_length=1, max_length=255)
-    date: Optional[date] = None
+    date: Optional[Date] = None
     amount: Optional[Decimal] = Field(None, gt=0)
     currency_id: Optional[UUID] = None
     payment_method_id: Optional[UUID] = None
@@ -512,7 +512,7 @@ class PaymentResponse(PaymentBase):
     id: UUID
     number: str
     state: PaymentStateEnum
-    date_posted: Optional[date]
+    date_posted: Optional[Date]
     posted_at: Optional[datetime]
     journal_entry_id: Optional[UUID]
     created_at: datetime
@@ -556,13 +556,13 @@ class SaleOrderConfirmRequest(BaseModel):
 
 class InvoicePostRequest(BaseModel):
     """Schema for posting invoice."""
-    date_posted: Optional[date] = None
+    date_posted: Optional[Date] = None
 
 
 class PaymentRegisterRequest(BaseModel):
     """Schema for registering payment on invoice."""
     amount: Decimal = Field(..., gt=0)
-    date: date
+    date: Date
     journal_id: UUID
     payment_method_id: Optional[UUID] = None
     reference: Optional[str] = None
