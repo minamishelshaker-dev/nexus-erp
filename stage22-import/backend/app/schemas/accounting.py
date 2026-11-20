@@ -295,8 +295,8 @@ class GeneralLedgerRequest(BaseModel):
     """Request for general ledger report."""
     account_id: Optional[UUID] = Field(None, description="Filter by account")
     account_codes: Optional[List[str]] = Field(None, description="Filter by account codes")
-    date_from: date = Field(..., description="Start date")
-    date_to: date = Field(..., description="End date")
+    date_from: Date = Field(..., description="Start date")
+    date_to: Date = Field(..., description="End date")
     partner_id: Optional[UUID] = Field(None, description="Filter by partner")
     include_opening: bool = Field(default=True, description="Include opening balance")
     
@@ -312,8 +312,8 @@ class GeneralLedgerResponse(BaseModel):
     account_id: Optional[UUID] = None
     account_code: Optional[str] = None
     account_name: Optional[str] = None
-    date_from: date
-    date_to: date
+    date_from: Date
+    date_to: Date
     
     opening_debit: Decimal = Decimal("0")
     opening_credit: Decimal = Decimal("0")
@@ -349,16 +349,16 @@ class TrialBalanceLine(BaseSchema):
 
 class TrialBalanceRequest(BaseModel):
     """Request for trial balance report."""
-    date_from: date = Field(..., description="Start date")
-    date_to: date = Field(..., description="End date")
+    date_from: Date = Field(..., description="Start date")
+    date_to: Date = Field(..., description="End date")
     include_zero_balances: bool = Field(default=False)
     group_by_type: bool = Field(default=True)
 
 
 class TrialBalanceResponse(BaseModel):
     """Trial balance report response."""
-    date_from: date
-    date_to: date
+    date_from: Date
+    date_to: Date
     generated_at: datetime
     
     total_opening_debit: Decimal = Decimal("0")
@@ -392,8 +392,8 @@ class IncomeStatementSection(BaseSchema):
 
 class IncomeStatementRequest(BaseModel):
     """Request for income statement."""
-    date_from: date = Field(..., description="Start date")
-    date_to: date = Field(..., description="End date")
+    date_from: Date = Field(..., description="Start date")
+    date_to: Date = Field(..., description="End date")
     comparison_date_from: Optional[Date] = Field(None, description="Comparison period start")
     comparison_date_to: Optional[Date] = Field(None, description="Comparison period end")
     show_percentages: bool = Field(default=True)
@@ -401,8 +401,8 @@ class IncomeStatementRequest(BaseModel):
 
 class IncomeStatementResponse(BaseModel):
     """Income statement response."""
-    date_from: date
-    date_to: date
+    date_from: Date
+    date_to: Date
     comparison_date_from: Optional[Date] = None
     comparison_date_to: Optional[Date] = None
     generated_at: datetime
@@ -480,8 +480,8 @@ class BalanceSheetResponse(BaseModel):
 class FiscalYearCreate(BaseModel):
     """Schema for creating a fiscal year."""
     name: str = Field(..., max_length=100)
-    start_date: date
-    end_date: date
+    start_date: Date
+    end_date: Date
     
     @model_validator(mode='after')
     def validate_dates(self):
@@ -494,8 +494,8 @@ class FiscalYearResponse(BaseSchema):
     """Fiscal year response."""
     id: UUID
     name: str
-    start_date: date
-    end_date: date
+    start_date: Date
+    end_date: Date
     is_closed: bool
     closed_at: Optional[datetime] = None
     periods: List["FiscalPeriodResponse"] = []
@@ -507,8 +507,8 @@ class FiscalPeriodResponse(BaseSchema):
     fiscal_year_id: UUID
     name: str
     period_number: int
-    start_date: date
-    end_date: date
+    start_date: Date
+    end_date: Date
     is_closed: bool
     is_adjustment: bool
 
@@ -596,8 +596,8 @@ FiscalYearResponse.model_rebuild()
 class BankStatementCreate(BaseModel):
     account_id: UUID
     statement_number: str = Field(..., min_length=1, max_length=100)
-    start_date: date
-    end_date: date
+    start_date: Date
+    end_date: Date
     opening_balance: Decimal
     closing_balance: Decimal
     currency_code: Optional[str] = Field(None, min_length=3, max_length=3)
@@ -606,7 +606,7 @@ class BankStatementCreate(BaseModel):
 
 class BankStatementLineCreate(BaseModel):
     line_number: int = Field(..., ge=1)
-    transaction_date: date
+    transaction_date: Date
     value_date: Optional[Date] = None
     description: str = Field(..., min_length=1, max_length=500)
     external_reference: Optional[str] = Field(None, max_length=150)
