@@ -339,7 +339,7 @@ def upgrade() -> None:
         (gen_random_uuid(), 'pro', 'Professional', 'Ideal for growing businesses', 
          'pro', true, true, 79, 790, 25, 10240, 1000, 5000, 14,
          '{"inventory": true, "sales": true, "purchase": true, "accounting": true, "crm": true, 
-           "manufacturing": true, "ai_features": true, "api_access": true, "custom_reports": true}'::jsonb),
+           "manufacturing": true, "ai_features": true, "api_access": true, "custom_reports": true}'::jsonb, false),
         (gen_random_uuid(), 'enterprise', 'Enterprise', 'For large organizations with custom needs', 
          'enterprise', true, true, 199, 1990, -1, -1, -1, -1, 30,
          '{"inventory": true, "sales": true, "purchase": true, "accounting": true, "crm": true,
