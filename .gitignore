@@ -1,0 +1,32 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local databases and runtime artifacts
+*.db
+*.sqlite
+*.sqlite3
+*.log
+coverage/
+htmlcov/
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/
