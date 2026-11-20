@@ -6,12 +6,14 @@ on:
       - integration/stage23-safety-patch
     paths:
       - "stage22-import/backend/**"
+      - "stage22-import/frontend/**"
       - ".github/workflows/nexus-erp-integration.yml"
   pull_request:
     branches:
       - recovery/stage22-import
     paths:
       - "stage22-import/backend/**"
+      - "stage22-import/frontend/**"
       - ".github/workflows/nexus-erp-integration.yml"
 
 permissions:
