@@ -1,0 +1,62 @@
+name: Import Stage 22 archive safely
+
+on:
+  workflow_dispatch:
+    inputs:
+      archive_path:
+        description: "Path of the uploaded ZIP in this branch"
+        required: true
+        default: "incoming/Nexus_ERP_cloud_bootstrap_stage22.zip"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stage22-import
+  cancel-in-progress: false
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out recovery branch
+        uses: actions/checkout@v4
+        with:
+          ref: recovery/stage22-import
+          fetch-depth: 0
+
+      - name: Validate and extract archive into isolated folder
+        shell: bash
+        env:
+          ARCHIVE_PATH: ${{ inputs.archive_path }}
+        run: |
+          set -euo pipefail
+          test -f "$ARCHIVE_PATH" || { echo "::error::Archive not found: $ARCHIVE_PATH"; exit 1; }
+          case "$ARCHIVE_PATH" in /*|*../*) echo "::error::Unsafe archive path"; exit 1 ;; esac
+          if unzip -Z1 "$ARCHIVE_PATH" | grep -Eq '(^/|(^|/)\.\./)'; then
+            echo "::error::ZIP contains unsafe paths"; exit 1
+          fi
+          mkdir -p /tmp/stage22-unpack stage22-import
+          unzip -q "$ARCHIVE_PATH" -d /tmp/stage22-unpack
+          SRC="/tmp/stage22-unpack/nexus-erp"
+          test -d "$SRC" || { echo "::error::Expected top-level nexus-erp/ folder was not found"; exit 1; }
+          cp -a "$SRC/." stage22-import/
+          find stage22-import -type d -name '__pycache__' -prune -exec rm -rf {} +
+          find stage22-import -type f \( -name '*.pyc' -o -name '*.pyo' \) -delete
+          find stage22-import -type f -name '.env' -delete
+          rm -f "$ARCHIVE_PATH"
+          rmdir incoming 2>/dev/null || true
+
+      - name: Commit isolated import
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A stage22-import incoming
+          if git diff --cached --quiet; then
+            echo "No Stage 22 changes to import."
+            exit 0
+          fi
+          git commit -m "Import Stage 22 archive into isolated recovery snapshot"
+          git push origin HEAD:recovery/stage22-import
