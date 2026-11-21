@@ -68,6 +68,21 @@ def do_run_migrations(connection) -> None:
 
         configure_options["include_object"] = include_object
 
+    elif os.getenv("ALEMBIC_ADDITIVE_PARITY_ONLY") == "1":
+        def include_object(obj, name, type_, reflected, compare_to):
+            # Keep ORM-backed tables, but ignore database-only legacy tables.
+            if type_ == "table":
+                return not reflected
+            # Only create missing metadata objects; never drop or alter existing
+            # columns, indexes, constraints, or types in this mode.
+            if type_ == "column":
+                return not reflected and compare_to is None
+            if type_ in {"index", "unique_constraint", "foreign_key_constraint", "check_constraint"}:
+                return not reflected and compare_to is None
+            return True
+
+        configure_options["include_object"] = include_object
+
     context.configure(**configure_options)
     with context.begin_transaction():
         context.run_migrations()
