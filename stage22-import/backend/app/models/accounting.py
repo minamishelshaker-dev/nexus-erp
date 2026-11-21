@@ -304,7 +304,7 @@ class Account(BaseModel, TenantMixin):
     # Additional
     notes: Optional[str] = Column(Text, nullable=True)
     tags: List[str] = Column(
-        "ARRAY(String)",
+        ARRAY(String),
         default=list,
         nullable=False
     )
