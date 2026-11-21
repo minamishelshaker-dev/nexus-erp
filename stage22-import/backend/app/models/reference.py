@@ -116,5 +116,5 @@ class Department(BaseModel, TenantMixin):
     name = Column(String(160), nullable=False)
     description = Column(Text, nullable=True)
     parent_id = Column(UUID(as_uuid=True), ForeignKey("departments.id", ondelete="SET NULL"), nullable=True)
-    manager_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL", use_alter=True, name="fk_departments_manager_id"), nullable=True)
+    manager_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL", use_alter=True, name="departments_manager_id_fkey"), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
