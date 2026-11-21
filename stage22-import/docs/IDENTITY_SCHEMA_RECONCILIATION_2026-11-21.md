@@ -136,3 +136,8 @@ The migration chain creates `permissions` in the later ORM inventory migration, 
 ## Decision
 
 **Do not apply an identity migration to the live Supabase project yet.** The safe next engineering task is to inspect the complete legacy schema and actual tenant/user/role data on an isolated disposable PostgreSQL instance, then build an additive, reversible data migration with preflight assertions. No production database was changed as part of this review.
+
+
+## Follow-up inspection: departments
+
+The current department model was located in `stage22-import/backend/app/models/reference.py` (not a standalone `department.py`). It inherits `BaseModel` and `TenantMixin`, has a tenant/code unique constraint, and defines a self-referencing parent FK plus `manager_id → users.id`. The user model separately defines `department_id → departments.id`. This confirms a bidirectional table dependency. The migration must create both tables first and add one side of the FK cycle in a later ALTER step; do not rely on automatic FK ordering alone.
