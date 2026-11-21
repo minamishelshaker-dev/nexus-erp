@@ -9,7 +9,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 revision = "add_bank_reconciliation_stage20"
-down_revision = "supp_payment_reverse_19"
+down_revision = "create_journal_items"
 branch_labels = None
 depends_on = None
 
