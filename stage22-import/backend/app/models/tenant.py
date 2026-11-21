@@ -1059,7 +1059,7 @@ class AuditLog(BaseModel):
     # Action Details
     # ========================================
     action: AuditAction = Column(
-        SQLEnum(AuditAction),
+        SQLEnum(AuditAction, name="audit_action", values_callable=lambda enum_cls: [item.value for item in enum_cls]),
         nullable=False,
         doc="Type of action performed"
     )
