@@ -1,6 +1,6 @@
-"""Diagnostic missing ORM tables - review only
+"""Create the ORM tables missing from the existing migration chain
 
-Revision ID: orm_parity_diagnostic
+Revision ID: add_missing_orm_tables_68
 Revises: create_reference_master_data
 Create Date: 2026-11-21 19:46:52.658783
 """
@@ -2578,5 +2578,3 @@ def downgrade() -> None:
     op.drop_index('ix_permissions_code', table_name='permissions')
     op.drop_table('permissions')
     # ### end Alembic commands ###
-INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
-INFO  [alembic.runtime.migration] Will assume transactional DDL.
