@@ -359,9 +359,9 @@ class Product(BaseModel, TenantMixin):
     # ========================================
     # Dimensions & Weight
     # ========================================
-    weight: Optional[Decimal] = Column(Numeric(10, 4), nullable=True, doc="Weight in kg")
+    weight: Optional[Decimal] = Column(Numeric(12, 4), nullable=True, doc="Weight in kg")
     weight_uom_id: Optional[uuid.UUID] = Column(UUID(as_uuid=True), nullable=True)
-    volume: Optional[Decimal] = Column(Numeric(10, 4), nullable=True, doc="Volume in m³")
+    volume: Optional[Decimal] = Column(Numeric(12, 4), nullable=True, doc="Volume in m³")
     length: Optional[Decimal] = Column(Numeric(10, 4), nullable=True)
     width: Optional[Decimal] = Column(Numeric(10, 4), nullable=True)
     height: Optional[Decimal] = Column(Numeric(10, 4), nullable=True)
