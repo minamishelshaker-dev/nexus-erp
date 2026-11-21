@@ -124,3 +124,35 @@ Several names look semantically related but are not equivalent by name alone (fo
 4. Extend CI to fail on missing ORM tables **and** missing/incorrect columns, constraints, indexes, enum definitions, and tenant scoping.
 5. Re-run the disposable PostgreSQL migration test and ORM inventory.
 6. Only after the full parity gate passes, review and apply migrations to the dedicated Nexus ERP Supabase project.
+
+
+## Column-level findings confirmed during follow-up review
+
+The first column-level pass identified a concrete timestamp-type mismatch in
+`add_bank_reconciliation_stage20.py`:
+
+- The shared ORM `BaseModel` defines `deleted_at` as
+  `DateTime(timezone=True)`.
+- The migration creates `deleted_at` as `sa.DateTime()` (without timezone)
+  in both `bank_statements` and `bank_statement_lines`.
+
+This is a schema-parity defect. It must be corrected through a reviewed,
+ordered Alembic change before production use. Do not assume PostgreSQL will
+preserve timezone semantics when converting between `timestamp` and
+`timestamptz`; the conversion policy must be explicit.
+
+The `journal_items`, `analytic_accounts`, `analytic_lines`, and
+`reconciliations` definitions were also checked against their ORM classes.
+Their principal business columns and declared foreign-key/check constraints
+are represented in the migration, but this focused review is not a complete
+metadata comparison and does not certify all defaults, nullability, indexes,
+or inherited columns.
+
+## Inventory count validation note
+
+The SQL-only section above currently displays 13 names while its heading says
+14. The arithmetic implied by the summary counts (102 ORM, 68 missing, 48
+migration-created) implies 14 SQL-only names. Therefore the SQL-only list and
+its count must be regenerated from the exact model/migration sets before this
+inventory is treated as final. The count discrepancy is intentionally
+recorded rather than silently guessed.
