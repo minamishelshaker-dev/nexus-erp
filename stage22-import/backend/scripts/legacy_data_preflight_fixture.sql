@@ -45,3 +45,6 @@ CREATE TABLE legacy_fk_child (
     CONSTRAINT legacy_fk_child_parent_fk
         FOREIGN KEY (parent_id) REFERENCES legacy_fk_parent(id) NOT VALID
 );
+-- An orphan row proves the NOT VALID constraint is present and intentionally
+-- has not been validated against pre-existing legacy data.
+INSERT INTO legacy_fk_child(parent_id) VALUES (999);
