@@ -200,7 +200,7 @@ class Tenant(BaseModel):
     # Subscription & Billing
     # ========================================
     status: TenantStatus = Column(
-        SQLEnum(TenantStatus),
+        SQLEnum(TenantStatus, name="tenant_status", values_callable=lambda enum_cls: [item.value for item in enum_cls]),
         default=TenantStatus.TRIAL,
         nullable=False,
         doc="Current tenant status"
