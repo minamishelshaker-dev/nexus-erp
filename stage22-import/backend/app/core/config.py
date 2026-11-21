@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     DATABASE_POOL_SIZE: int = 20
     DATABASE_MAX_OVERFLOW: int = 10
+    DATABASE_POOLER_MODE: str = "session"
     
     # ========================================
     # Redis Settings
