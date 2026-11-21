@@ -211,3 +211,6 @@ from app.models import company as _company  # noqa: F401,E402
 from app.models import notification as _notification  # noqa: F401,E402
 from app.models import workflow as _workflow  # noqa: F401,E402
 from app.models import tenant as _tenant  # noqa: F401,E402
+
+# Commercial reference/master data models used by CRM and user administration.
+from app.models import reference as _reference  # noqa: F401,E402
