@@ -105,6 +105,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      - name: Diagnose Alembic revision graph
+        run: |
+          alembic heads --verbose
+          alembic history --verbose
       - name: Apply existing migrations to disposable PostgreSQL
         run: alembic upgrade head
       - name: Report ORM tables missing from the migration result
