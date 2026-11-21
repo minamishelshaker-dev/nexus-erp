@@ -52,6 +52,15 @@ def do_run_migrations(connection) -> None:
         def include_object(obj, name, type_, reflected, compare_to):
             if type_ == "table":
                 return name in missing_tables and not reflected
+            if type_ == "foreign_key_constraint" and not reflected:
+                # Existing tables may gain an FK only after its referenced
+                # missing table is created (for example users.department_id).
+                targets = {
+                    element.target_fullname.split(".")[0]
+                    for element in obj.elements
+                }
+                return bool(targets & missing_tables)
+
             parent_table = getattr(obj, "table", None)
             if parent_table is not None:
                 return parent_table.name in missing_tables
