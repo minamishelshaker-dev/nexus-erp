@@ -6,8 +6,9 @@ CREATE TABLE users (
     username text
 );
 INSERT INTO users VALUES
-    (1, NULL, 'duplicate@example.test', 'same-user'),
-    (2, 10, 'duplicate@example.test', 'same-user');
+    (1, 10, 'duplicate@example.test', 'same-user'),
+    (2, 10, 'duplicate@example.test', 'same-user'),
+    (3, NULL, 'tenantless@example.test', 'tenantless-user');
 
 CREATE TABLE products (
     id integer PRIMARY KEY,
@@ -17,8 +18,9 @@ CREATE TABLE products (
     qty_on_hand numeric(18,4)
 );
 INSERT INTO products VALUES
-    (1, NULL, 'SKU-DUP', NULL, 12.0000),
-    (2, 10, 'SKU-DUP', 1, 0.0000);
+    (1, 10, 'SKU-DUP', NULL, 12.0000),
+    (2, 10, 'SKU-DUP', 1, 0.0000),
+    (3, NULL, 'SKU-LEGACY', 1, 0.0000);
 
 CREATE TABLE journal_entries (
     id integer PRIMARY KEY,
