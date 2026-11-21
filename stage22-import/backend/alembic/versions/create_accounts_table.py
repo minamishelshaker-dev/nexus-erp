@@ -13,17 +13,21 @@ down_revision = "add_journal_source_idempotency"
 branch_labels = None
 depends_on = None
 
+# Types are created explicitly in upgrade(); disable SQLAlchemy's implicit
+# table-create hook to avoid duplicate CREATE TYPE statements on PostgreSQL.
 account_type = postgresql.ENUM(
     "asset", "liability", "equity", "revenue", "expense",
     "contra_asset", "contra_liability", "contra_equity",
     "contra_revenue", "contra_expense",
     name="accounttype",
+    create_type=False,
 )
 account_category = postgresql.ENUM(
     "cash", "bank", "receivable", "inventory", "fixed_asset",
     "payable", "tax", "capital", "sales", "cost_of_sales",
     "operating_expense", "other_income", "other_expense",
     name="accountcategory",
+    create_type=False,
 )
 
 
