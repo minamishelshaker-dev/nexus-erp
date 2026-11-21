@@ -735,7 +735,7 @@ class Plan(BaseModel):
     )
     
     plan_type: PlanType = Column(
-        SQLEnum(PlanType),
+        SQLEnum(PlanType, name="plan_type", values_callable=lambda enum_cls: [item.value for item in enum_cls]),
         nullable=False,
         doc="Plan type classification"
     )
