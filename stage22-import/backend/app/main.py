@@ -119,7 +119,7 @@ app.add_middleware(
 if settings.ENVIRONMENT == "production":
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=["*.nexus-erp.com", "localhost"],
+        allowed_hosts=settings.ALLOWED_HOSTS,
     )
 
 
