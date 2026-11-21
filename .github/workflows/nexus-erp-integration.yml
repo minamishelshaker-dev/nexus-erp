@@ -245,6 +245,9 @@ jobs:
         run: |
           alembic upgrade head --sql > nexus_erp_production_schema.sql
           test -s nexus_erp_production_schema.sql
+          echo BEGIN_NEXUS_ERP_SCHEMA_SQL
+          cat nexus_erp_production_schema.sql
+          echo END_NEXUS_ERP_SCHEMA_SQL
       - name: Upload production schema SQL artifact
         uses: actions/upload-artifact@v4
         with:
