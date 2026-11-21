@@ -1,6 +1,7 @@
 """Alembic environment configured for the application's async SQLAlchemy engine."""
 
 import asyncio
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -33,11 +34,32 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection) -> None:
-    context.configure(
-        connection=connection,
-        target_metadata=target_metadata,
-        compare_type=True,
-    )
+    configure_options = {
+        "connection": connection,
+        "target_metadata": target_metadata,
+        "compare_type": True,
+    }
+
+    # Diagnostic mode: generate CREATE TABLE operations only for ORM tables
+    # absent from the disposable database. Never emit drops or alterations
+    # against existing tables while preparing the missing-table inventory.
+    if os.getenv("ALEMBIC_CREATE_MISSING_TABLES_ONLY") == "1":
+        from sqlalchemy import inspect
+
+        existing_tables = set(inspect(connection).get_table_names(schema="public"))
+        missing_tables = set(target_metadata.tables) - existing_tables
+
+        def include_object(obj, name, type_, reflected, compare_to):
+            if type_ == "table":
+                return name in missing_tables and not reflected
+            parent_table = getattr(obj, "table", None)
+            if parent_table is not None:
+                return parent_table.name in missing_tables
+            return True
+
+        configure_options["include_object"] = include_object
+
+    context.configure(**configure_options)
     with context.begin_transaction():
         context.run_migrations()
 
