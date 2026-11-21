@@ -32,7 +32,7 @@ from app.api.v1.endpoints import billing
 from app.api.v1.endpoints import hr
 from app.api.v1.endpoints import projects
 from app.api.v1.endpoints import pos
-from app.api.v1.endpoints import settings
+from app.api.v1.endpoints import settings as settings_endpoint
 
 # Configure logging
 logging.basicConfig(
@@ -291,7 +291,7 @@ api_v1_router.include_router(projects.router)
 api_v1_router.include_router(pos.router)
 
 # Settings Module
-api_v1_router.include_router(settings.router)
+api_v1_router.include_router(settings_endpoint.router)
 
 # Include API router in app
 app.include_router(api_v1_router)
