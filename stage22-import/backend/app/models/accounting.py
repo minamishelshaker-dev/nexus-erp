@@ -522,7 +522,7 @@ class JournalEntry(BaseModel, TenantMixin):
     
     # Posting Info
     posted_at: Optional[datetime] = Column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=True,
         doc="When entry was posted"
     )
