@@ -149,5 +149,35 @@ jobs:
 
           asyncio.run(main())
           PY
+      - name: Diagnose full ORM column and constraint parity (review only)
+        run: |
+          alembic revision --autogenerate --rev-id orm_full_parity_diagnostic --message "Full ORM parity diagnostic - review only"
+          DRAFT="$(find alembic/versions -maxdepth 1 -name '*orm_full_parity_diagnostic*.py' -print -quit)"
+          test -n "$DRAFT"
+          python - "$DRAFT" <<'PY'
+          import ast
+          import collections
+          import pathlib
+          import sys
+
+          tree = ast.parse(pathlib.Path(sys.argv[1]).read_text())
+          calls = []
+          for node in ast.walk(tree):
+              if not isinstance(node, ast.Call):
+                  continue
+              func = node.func
+              if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name) and func.value.id == "op":
+                  calls.append((func.attr, node))
+          counts = collections.Counter(name for name, _ in calls)
+          print("FULL ORM PARITY DIAGNOSTIC ONLY — DO NOT APPLY AUTOMATICALLY")
+          for name, count in sorted(counts.items()):
+              print(f"OPERATION {name}: {count}")
+          for name, node in calls:
+              if name in {"drop_table", "drop_column", "drop_index", "drop_constraint", "alter_column"}:
+                  args = []
+                  for arg in node.args[:2]:
+                      args.append(arg.value if isinstance(arg, ast.Constant) else ast.unparse(arg))
+                  print(f"REVIEW REQUIRED {name}: {args}")
+          PY
 
 # CI rerun after fixing discovered frontend and accounting schema blockers.
