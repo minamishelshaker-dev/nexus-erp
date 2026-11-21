@@ -127,7 +127,7 @@ jobs:
               assert readiness.json()["services"]["database"] == "healthy"
           print("FastAPI startup and PostgreSQL readiness passed.")
           PY
-      - name: Generate diagnostic-only ORM parity draft (never applied)
+      - name: Verify committed ORM table parity with an empty diagnostic revision
         run: |
           ALEMBIC_CREATE_MISSING_TABLES_ONLY=1 alembic revision --autogenerate --rev-id orm_parity_diagnostic --message "Diagnostic missing ORM tables - review only"
           DRAFT="$(find alembic/versions -maxdepth 1 -name '*orm_parity_diagnostic*.py' -print -quit)"
@@ -152,6 +152,7 @@ jobs:
           if operations:
               raise SystemExit("Committed Alembic migrations are missing ORM tables or their foreign keys.")
           PY
+          alembic upgrade orm_parity_diagnostic
       - name: Report ORM tables missing from the migration result
         run: |
           python - <<'PY'
@@ -272,6 +273,7 @@ jobs:
           if calls:
               raise SystemExit("Committed Alembic migrations are missing ORM columns, indexes, or constraints.")
           PY
+          alembic upgrade orm_additive_parity_diagnostic
           echo "ADDITIVE PARITY DRAFT (must be empty after committed migrations):"
           cat "$DRAFT"
       - name: Export committed Alembic schema SQL for production review
