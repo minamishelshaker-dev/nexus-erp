@@ -132,9 +132,26 @@ jobs:
           ALEMBIC_CREATE_MISSING_TABLES_ONLY=1 alembic revision --autogenerate --rev-id orm_parity_diagnostic --message "Diagnostic missing ORM tables - review only"
           DRAFT="$(find alembic/versions -maxdepth 1 -name '*orm_parity_diagnostic*.py' -print -quit)"
           test -n "$DRAFT"
-          echo "DIAGNOSTIC ONLY: this create-table-only draft is printed for review and applied ONLY to disposable CI PostgreSQL."
+          echo "CREATE-TABLE PARITY DRAFT (must be empty after committed migrations):"
           cat "$DRAFT"
-          alembic upgrade orm_parity_diagnostic
+          python - "$DRAFT" <<'PY'
+          import ast
+          import pathlib
+          import sys
+
+          tree = ast.parse(pathlib.Path(sys.argv[1]).read_text())
+          upgrade = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "upgrade")
+          operations = [
+              node.func.attr for node in ast.walk(upgrade)
+              if isinstance(node, ast.Call)
+              and isinstance(node.func, ast.Attribute)
+              and isinstance(node.func.value, ast.Name)
+              and node.func.value.id == "op"
+          ]
+          print(f"UNMIGRATED ORM TABLE OPERATIONS: {operations}")
+          if operations:
+              raise SystemExit("Committed Alembic migrations are missing ORM tables or their foreign keys.")
+          PY
       - name: Report ORM tables missing from the migration result
         run: |
           python - <<'PY'
@@ -160,6 +177,8 @@ jobs:
               for table in missing:
                   print(f"MISSING: {table}")
               await engine.dispose()
+              if missing:
+                  raise SystemExit("ORM tables are missing from committed migrations.")
 
           asyncio.run(main())
           PY
@@ -247,14 +266,12 @@ jobs:
           print("ADDITIVE ORM PARITY DRAFT — DISPOSABLE CI ONLY")
           for name, count in sorted(counts.items()):
               print(f"ADDITIVE {name}: {count}")
-          forbidden = {"drop_table", "drop_column", "drop_index", "drop_constraint", "alter_column"}
-          found = sorted({name for name, _ in calls} & forbidden)
-          if found:
-              raise SystemExit(f"Unsafe operations in additive-only draft: {found}")
+          print(f"UNMIGRATED ADDITIVE ORM OPERATIONS: {[name for name, _ in calls]}")
+          if calls:
+              raise SystemExit("Committed Alembic migrations are missing ORM columns, indexes, or constraints.")
           PY
-          echo "REVIEWED ADDITIVE MIGRATION DRAFT (disposable CI only):"
+          echo "ADDITIVE PARITY DRAFT (must be empty after committed migrations):"
           cat "$DRAFT"
-          alembic upgrade orm_additive_parity_diagnostic
       - name: Export committed Alembic schema SQL for production review
         run: |
           alembic upgrade enforce_required_columns --sql > nexus_erp_production_schema.sql
