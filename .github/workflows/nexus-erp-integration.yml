@@ -149,6 +149,47 @@ jobs:
 
           asyncio.run(main())
           PY
+      - name: Report null counts for ORM-required columns
+        run: |
+          python - <<'PY'
+          import asyncio
+          import os
+          from sqlalchemy import text
+          from sqlalchemy.ext.asyncio import create_async_engine
+
+          checks = [
+              ("analytic_accounts", "is_active"),
+              ("bills_of_materials", "tenant_id"),
+              ("journal_entries", "tenant_id"),
+              ("leads", "tenant_id"),
+              ("manufacturing_orders", "tenant_id"),
+              ("opportunities", "tenant_id"),
+              ("partners", "tenant_id"),
+              ("products", "uom_id"),
+              ("products", "tenant_id"),
+              ("purchase_order_lines", "description"),
+              ("purchase_orders", "tenant_id"),
+              ("roles", "tenant_id"),
+              ("stock_moves", "tenant_id"),
+              ("users", "first_name"),
+              ("users", "last_name"),
+              ("users", "tenant_id"),
+              ("warehouses", "tenant_id"),
+              ("work_centers", "tenant_id"),
+          ]
+
+          async def main():
+              engine = create_async_engine(os.environ["DATABASE_URL"])
+              async with engine.connect() as connection:
+                  for table, column in checks:
+                      result = await connection.execute(
+                          text(f'SELECT COUNT(*) FROM "{table}" WHERE "{column}" IS NULL')
+                      )
+                      print(f"NULL COUNT {table}.{column}: {result.scalar_one()}")
+              await engine.dispose()
+
+          asyncio.run(main())
+          PY
       - name: Generate additive-only ORM column and index migration (disposable CI only)
         run: |
           ALEMBIC_ADDITIVE_PARITY_ONLY=1 alembic revision --autogenerate --rev-id orm_additive_parity_diagnostic --message "Additive ORM parity draft - review only"
