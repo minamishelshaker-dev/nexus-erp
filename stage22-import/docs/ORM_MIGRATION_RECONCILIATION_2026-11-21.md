@@ -99,6 +99,7 @@ partner_contacts
 project_tasks
 projects
 purchase_requisitions
+refresh_tokens
 sales_order_lines
 sales_orders
 sales_quotations
@@ -150,9 +151,4 @@ or inherited columns.
 
 ## Inventory count validation note
 
-The SQL-only section above currently displays 13 names while its heading says
-14. The arithmetic implied by the summary counts (102 ORM, 68 missing, 48
-migration-created) implies 14 SQL-only names. Therefore the SQL-only list and
-its count must be regenerated from the exact model/migration sets before this
-inventory is treated as final. The count discrepancy is intentionally
-recorded rather than silently guessed.
+The SQL-only list was regenerated directly from the 13 ORM model modules and all 10 Alembic revision files. It contains 14 names; the previously omitted name was `refresh_tokens`. The set counts now reconcile: 102 ORM tables, 68 ORM tables missing from migrations, 48 unique migration-created names, 34 name overlaps, and 14 migration-only names.
