@@ -197,6 +197,8 @@ jobs:
           if found:
               raise SystemExit(f"Unsafe operations in additive-only draft: {found}")
           PY
+          echo "REVIEWED ADDITIVE MIGRATION DRAFT (disposable CI only):"
+          cat "$DRAFT"
           alembic upgrade orm_additive_parity_diagnostic
       - name: Export committed Alembic schema SQL for production review
         run: |
