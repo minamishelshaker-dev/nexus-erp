@@ -72,6 +72,8 @@ class Settings(BaseSettings):
     # CORS Settings
     # ========================================
     CORS_ORIGINS: List[str] = ["http://localhost:3000"]
+    CORS_ORIGIN_REGEX: Optional[str] = None
+    ALLOWED_HOSTS: List[str] = ["*.nexus-erp.com", "*.vercel.app", "localhost"]
     CORS_ALLOW_CREDENTIALS: bool = True
     CORS_ALLOW_METHODS: List[str] = ["*"]
     CORS_ALLOW_HEADERS: List[str] = ["*"]
