@@ -113,10 +113,18 @@ jobs:
           alembic history --verbose
       - name: Apply existing migrations to disposable PostgreSQL
         run: alembic upgrade head
-      - name: Run read-only legacy data preflight against disposable schema
+      - name: Run legacy data preflight against synthetic legacy fixture database
         env:
-          LEGACY_DATABASE_URL: postgresql://nexus_user:nexus_ci_password@127.0.0.1:5432/nexus_erp_test
-        run: psql "$LEGACY_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/legacy_data_preflight.sql
+          PGPASSWORD: nexus_ci_password
+          LEGACY_DATABASE_URL: postgresql://nexus_user:nexus_ci_password@127.0.0.1:5432/nexus_erp_legacy_fixture
+        run: |
+          createdb -h 127.0.0.1 -U nexus_user nexus_erp_legacy_fixture
+          psql "$LEGACY_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/legacy_data_preflight_fixture.sql
+          set -o pipefail
+          psql "$LEGACY_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/legacy_data_preflight.sql | tee /tmp/nexus-legacy-preflight.log
+          for expected in NULL_TENANT_ID DUPLICATE_IDENTIFIER MISSING_UOM UNBALANCED_POSTED_JOURNAL UNVALIDATED_FOREIGN_KEY LEGACY_STOCK_SNAPSHOT_PRESENT; do
+            grep -q "$expected" /tmp/nexus-legacy-preflight.log || { echo "Expected preflight finding missing: $expected"; exit 1; }
+          done
       - name: FastAPI database readiness smoke test
         run: |
           python - <<'PY'
