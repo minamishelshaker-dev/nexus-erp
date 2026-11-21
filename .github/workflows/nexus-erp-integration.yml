@@ -113,6 +113,10 @@ jobs:
           alembic history --verbose
       - name: Apply existing migrations to disposable PostgreSQL
         run: alembic upgrade head
+      - name: Run read-only legacy data preflight against disposable schema
+        env:
+          LEGACY_DATABASE_URL: postgresql://nexus_user:nexus_ci_password@127.0.0.1:5432/nexus_erp_test
+        run: psql "$LEGACY_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/legacy_data_preflight.sql
       - name: FastAPI database readiness smoke test
         run: |
           python - <<'PY'
