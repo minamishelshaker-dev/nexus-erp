@@ -113,6 +113,20 @@ jobs:
           alembic history --verbose
       - name: Apply existing migrations to disposable PostgreSQL
         run: alembic upgrade head
+      - name: FastAPI database readiness smoke test
+        run: |
+          python - <<'PY'
+          from fastapi.testclient import TestClient
+          from app.main import app
+
+          with TestClient(app) as client:
+              health = client.get("/health")
+              assert health.status_code == 200, health.text
+              readiness = client.get("/health/ready")
+              assert readiness.status_code == 200, readiness.text
+              assert readiness.json()["services"]["database"] == "healthy"
+          print("FastAPI startup and PostgreSQL readiness passed.")
+          PY
       - name: Generate diagnostic-only ORM parity draft (never applied)
         run: |
           ALEMBIC_CREATE_MISSING_TABLES_ONLY=1 alembic revision --autogenerate --rev-id orm_parity_diagnostic --message "Diagnostic missing ORM tables - review only"
