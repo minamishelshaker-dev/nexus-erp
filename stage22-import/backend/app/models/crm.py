@@ -1079,8 +1079,8 @@ class Opportunity(BaseModel, TenantMixin):
     # ========================================
     # Dates
     # ========================================
-    expected_close_date: Optional[datetime] = Column(
-        DateTime(timezone=True),
+    expected_close_date: Optional[date] = Column(
+        Date,
         nullable=True,
         doc="Expected close date"
     )
