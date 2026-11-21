@@ -14,6 +14,7 @@ import {
   Edit,
   Trash2,
   Eye,
+  Users,
 } from 'lucide-react'
 
 export default function CustomersPage() {

@@ -8,7 +8,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-revision = "add_supplier_payment_reversal_stage19"
+revision = "supp_payment_reverse_19"
 down_revision = "add_supplier_payments_stage18"
 branch_labels = None
 depends_on = None

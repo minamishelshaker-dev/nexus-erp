@@ -3,7 +3,7 @@
  * with gradient fill and smooth animations
  */
 
-import React, { useMemo } from 'react'
+import type React from 'react'
 import {
   Area,
   AreaChart as RechartsAreaChart,
@@ -12,9 +12,6 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-  defs,
-  linearGradient,
-  stop,
 } from 'recharts'
 import { clsx } from 'clsx'
 import { colors } from '@/styles/tokens'
@@ -77,14 +74,6 @@ export const AreaChart: React.FC<AreaChartProps> = ({
   formatValue,
   formatLabel,
 }) => {
-  const gradientStops = useMemo(() => {
-    // Parse the color to create gradient stops
-    return [
-      { offset: '0%', opacity: 0.3 },
-      { offset: '100%', opacity: 0 },
-    ]
-  }, [])
-
   return (
     <div className={clsx('w-full', className)} style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">

@@ -241,4 +241,5 @@ export interface Address {
   is_default: boolean
 }
 
+export { api }
 export default api
