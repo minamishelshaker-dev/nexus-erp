@@ -1,7 +1,7 @@
 """Add missing ORM columns, foreign keys, indexes, and unique constraints
 
-Revision ID: orm_additive_parity_diagnostic
-Revises: orm_parity_diagnostic
+Revision ID: additive_orm_schema_columns
+Revises: add_missing_orm_tables_68
 Create Date: 2026-11-21 19:57:25.292750
 """
 from typing import Sequence, Union
