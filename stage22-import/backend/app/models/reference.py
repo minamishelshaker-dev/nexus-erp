@@ -101,7 +101,7 @@ class Team(BaseModel, TenantMixin):
     name = Column(String(160), nullable=False)
     description = Column(Text, nullable=True)
     team_type = Column(String(40), default="sales", nullable=False)
-    leader_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    leader_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL", use_alter=True, name="fk_departments_manager_id"), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
 
 
