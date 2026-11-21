@@ -43,7 +43,7 @@ Do not add placeholder secrets or localhost service URLs to a production environ
 
 ## Frontend/API connection
 
-The frontend reads `VITE_API_URL` at build time and otherwise falls back to the relative path `/api/v1`. If frontend and API are deployed on different origins, configure `VITE_API_URL` to the API origin plus `/api/v1`, then include the frontend origin in backend `CORS_ORIGINS`.
+The frontend reads `VITE_API_URL` at build time and otherwise falls back to the relative path `/api/v1`. If frontend and API are deployed on different origins, configure the frontend build variable `VITE_API_URL` to the API origin plus `/api/v1`, then include the frontend origin in backend `CORS_ORIGINS`.
 
 The Vercel project reviewed here is the API project. A READY API preview is not evidence that the React frontend has been deployed or connected.
 
@@ -62,6 +62,6 @@ The Vercel project reviewed here is the API project. A READY API preview is not 
 
 - `GET /` — application identity and documentation links.
 - `GET /health` — process health.
-- `GET /health/ready` — database-backed readiness; expected to return HTTP 503 until a valid database connection is configured.
+- `GET /health/ready` — database-backed readiness; with valid runtime settings but an unavailable database, it returns HTTP 503. Because `DATABASE_URL` and `SECRET_KEY` are required settings, omitting either may prevent the application from starting before a health route can respond.
 
 A Vercel deployment marked `READY` means its build/deployment process completed. It does not certify database readiness, working authentication, production data, or frontend integration.
