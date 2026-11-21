@@ -927,7 +927,7 @@ class Partner(BaseModel, TenantMixin):
     receivable_balance: Decimal = Column(Numeric(18, 4), default=Decimal("0"))
     payable_balance: Decimal = Column(Numeric(18, 4), default=Decimal("0"))
     
-    is_active: bool = Column(Boolean, default=True)
+    is_active: bool = Column(Boolean, default=True, nullable=False)
 
 
 # ========================================
