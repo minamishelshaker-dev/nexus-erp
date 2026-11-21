@@ -86,7 +86,8 @@ BEGIN
            1,
            pg_get_constraintdef(c.oid)
     FROM pg_constraint c
-    JOIN pg_namespace ns ON ns.oid=c.connamespace
+    JOIN pg_class rel ON rel.oid=c.conrelid
+    JOIN pg_namespace ns ON ns.oid=rel.relnamespace
     WHERE c.contype='f' AND NOT c.convalidated AND ns.nspname='public';
 
     -- Double-entry balance check, only when the expected current line schema is present.
