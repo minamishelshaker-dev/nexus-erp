@@ -228,6 +228,8 @@ jobs:
           ALEMBIC_ADDITIVE_PARITY_ONLY=1 alembic revision --autogenerate --rev-id orm_additive_parity_diagnostic --message "Additive ORM parity draft - review only"
           DRAFT="$(find alembic/versions -maxdepth 1 -name '*orm_additive_parity_diagnostic*.py' -print -quit)"
           test -n "$DRAFT"
+          echo "ADDITIVE PARITY DRAFT CONTENT:"
+          cat "$DRAFT"
           python - "$DRAFT" <<'PY'
           import ast
           import collections
@@ -263,10 +265,10 @@ jobs:
               if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name) and node.func.value.id == "op":
                   calls.append((node.func.attr, node))
           counts = collections.Counter(name for name, _ in calls)
-          print("ADDITIVE ORM PARITY DRAFT — DISPOSABLE CI ONLY")
+          print("ADDITIVE ORM PARITY DRAFT — DISPOSABLE CI ONLY", flush=True)
           for name, count in sorted(counts.items()):
               print(f"ADDITIVE {name}: {count}")
-          print(f"UNMIGRATED ADDITIVE ORM OPERATIONS: {[name for name, _ in calls]}")
+          print(f"UNMIGRATED ADDITIVE ORM OPERATIONS: {[name for name, _ in calls]}", flush=True)
           if calls:
               raise SystemExit("Committed Alembic migrations are missing ORM columns, indexes, or constraints.")
           PY
