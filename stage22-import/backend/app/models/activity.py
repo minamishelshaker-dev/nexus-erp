@@ -216,7 +216,7 @@ class EntityActivity(BaseModel, TenantMixin):
     # Version Reference
     version_id: Optional[uuid.UUID] = Column(
         UUID(as_uuid=True),
-        ForeignKey("entity_versions.id", ondelete="SET NULL"),
+        ForeignKey("entity_versions.id", ondelete="SET NULL", use_alter=True, name="fk_entity_activities_version_id"),
         nullable=True,
         doc="Reference to version snapshot if created"
     )
