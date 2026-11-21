@@ -450,7 +450,7 @@ class JournalEntry(BaseModel, TenantMixin):
     
     # State
     state: EntryState = Column(
-        SQLEnum(EntryState),
+        SQLEnum(EntryState, native_enum=False, values_callable=lambda enum_cls: [item.value for item in enum_cls], length=50),
         default=EntryState.DRAFT,
         nullable=False,
         doc="Entry state"
