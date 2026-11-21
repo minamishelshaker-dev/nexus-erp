@@ -243,7 +243,7 @@ jobs:
           alembic upgrade orm_additive_parity_diagnostic
       - name: Export committed Alembic schema SQL for production review
         run: |
-          alembic upgrade expand_numeric_precision --sql > nexus_erp_production_schema.sql
+          alembic upgrade enforce_required_columns --sql > nexus_erp_production_schema.sql
           test -s nexus_erp_production_schema.sql
           echo BEGIN_NEXUS_ERP_SCHEMA_SQL
           cat nexus_erp_production_schema.sql
