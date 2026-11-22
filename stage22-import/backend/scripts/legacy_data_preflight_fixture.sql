@@ -40,11 +40,10 @@ INSERT INTO journal_items VALUES
     (2, 1, 0.00, 90.00);
 
 CREATE TABLE legacy_fk_parent (id integer PRIMARY KEY);
-CREATE TABLE legacy_fk_child (
-    parent_id integer,
-    CONSTRAINT legacy_fk_child_parent_fk
-        FOREIGN KEY (parent_id) REFERENCES legacy_fk_parent(id) NOT VALID
-);
--- An orphan row proves the NOT VALID constraint is present and intentionally
--- has not been validated against pre-existing legacy data.
+CREATE TABLE legacy_fk_child (parent_id integer);
+-- Load an orphan before adding the NOT VALID constraint, matching a legacy
+-- table that receives a constraint without validating historical rows.
 INSERT INTO legacy_fk_child(parent_id) VALUES (999);
+ALTER TABLE legacy_fk_child
+    ADD CONSTRAINT legacy_fk_child_parent_fk
+    FOREIGN KEY (parent_id) REFERENCES legacy_fk_parent(id) NOT VALID;
