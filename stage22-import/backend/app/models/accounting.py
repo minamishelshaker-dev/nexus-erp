@@ -33,7 +33,7 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy import event, func
 from typing import Optional, List
@@ -304,7 +304,7 @@ class Account(BaseModel, TenantMixin):
     # Additional
     notes: Optional[str] = Column(Text, nullable=True)
     tags: List[str] = Column(
-        "ARRAY(String)",
+        ARRAY(String),
         default=list,
         nullable=False
     )
@@ -450,7 +450,7 @@ class JournalEntry(BaseModel, TenantMixin):
     
     # State
     state: EntryState = Column(
-        SQLEnum(EntryState),
+        SQLEnum(EntryState, native_enum=False, values_callable=lambda enum_cls: [item.value for item in enum_cls], length=50),
         default=EntryState.DRAFT,
         nullable=False,
         doc="Entry state"
@@ -522,7 +522,7 @@ class JournalEntry(BaseModel, TenantMixin):
     
     # Posting Info
     posted_at: Optional[datetime] = Column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=True,
         doc="When entry was posted"
     )
@@ -927,7 +927,7 @@ class Partner(BaseModel, TenantMixin):
     receivable_balance: Decimal = Column(Numeric(18, 4), default=Decimal("0"))
     payable_balance: Decimal = Column(Numeric(18, 4), default=Decimal("0"))
     
-    is_active: bool = Column(Boolean, default=True)
+    is_active: bool = Column(Boolean, default=True, nullable=False)
 
 
 # ========================================

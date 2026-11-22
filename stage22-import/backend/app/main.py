@@ -7,11 +7,12 @@ the entire ERP system including middleware, routers, and startup.
 """
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from sqlalchemy import text
 from starlette.exceptions import HTTPException as StarletteHTTPException
 import logging
 import time
@@ -31,7 +32,7 @@ from app.api.v1.endpoints import billing
 from app.api.v1.endpoints import hr
 from app.api.v1.endpoints import projects
 from app.api.v1.endpoints import pos
-from app.api.v1.endpoints import settings
+from app.api.v1.endpoints import settings as settings_endpoint
 
 # Configure logging
 logging.basicConfig(
@@ -109,6 +110,7 @@ All API endpoints require authentication via JWT Bearer token.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=settings.CORS_ORIGIN_REGEX,
     allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
     allow_methods=settings.CORS_ALLOW_METHODS,
     allow_headers=settings.CORS_ALLOW_HEADERS,
@@ -117,7 +119,7 @@ app.add_middleware(
 if settings.ENVIRONMENT == "production":
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=["*.nexus-erp.com", "localhost"],
+        allowed_hosts=settings.ALLOWED_HOSTS,
     )
 
 
@@ -210,17 +212,20 @@ async def health_check():
 @app.get("/health/ready", tags=["Health"])
 async def readiness_check():
     """Readiness check endpoint."""
-    db_status = "healthy"
     try:
         async with db_manager.get_session() as session:
-            await session.execute("SELECT 1")
-    except Exception as e:
-        db_status = f"unhealthy: {str(e)}"
-    
+            await session.execute(text("SELECT 1"))
+    except Exception:
+        logger.exception("Database readiness check failed")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database is not ready",
+        )
+
     return {
-        "status": "ready" if db_status == "healthy" else "not_ready",
+        "status": "ready",
         "services": {
-            "database": db_status,
+            "database": "healthy",
             "api": "healthy",
         }
     }
@@ -286,7 +291,7 @@ api_v1_router.include_router(projects.router)
 api_v1_router.include_router(pos.router)
 
 # Settings Module
-api_v1_router.include_router(settings.router)
+api_v1_router.include_router(settings_endpoint.router)
 
 # Include API router in app
 app.include_router(api_v1_router)

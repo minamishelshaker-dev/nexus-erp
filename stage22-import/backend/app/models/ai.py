@@ -431,7 +431,7 @@ class OCRResult(BaseModel, TenantMixin):
     
     # Line Items
     line_items: List[dict] = Column(
-        "ARRAY(JSONB)",
+        ARRAY(JSONB),
         default=list,
         nullable=False,
         doc="Extracted line items"

@@ -24,6 +24,8 @@ import logging
 import stripe
 
 from app.core.database import db_manager
+from app.core.security import require_permission, get_current_superuser
+from app.models.user import User
 from app.core.config import settings
 from app.models.tenant import Tenant, Plan, Subscription, BillingInvoice, PlanType, TenantStatus
 from app.services.billing_service import BillingService, PLAN_CONFIGS, BillingError
@@ -31,6 +33,18 @@ from app.services.billing_service import BillingService, PLAN_CONFIGS, BillingEr
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/billing", tags=["Billing"])
+
+def _ensure_current_tenant(current_user: User, tenant_id: UUID) -> None:
+    """Prevent a tenant user from addressing another tenant's billing data."""
+    if not current_user.is_superuser and str(current_user.tenant_id) != str(tenant_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tenant resource not found",
+        )
+
+
+BILLING_ADMIN = Depends(require_permission("admin.billing.manage"))
+PLATFORM_ADMIN = Depends(get_current_superuser)
 
 
 # ========================================
@@ -226,7 +240,8 @@ async def get_plan(plan_id: UUID):
 @router.post("/subscriptions", response_model=dict)
 async def create_subscription(
     data: SubscriptionCreate,
-    tenant_id: UUID  # In production, get from auth context
+    tenant_id: UUID,
+    current_user: User = BILLING_ADMIN,
 ):
     """
     Create a new subscription for a tenant.
@@ -238,6 +253,7 @@ async def create_subscription(
     Returns:
         Subscription details including payment client secret
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -291,7 +307,7 @@ async def create_subscription(
 
 
 @router.get("/subscriptions/{tenant_id}", response_model=dict)
-async def get_subscription(tenant_id: UUID):
+async def get_subscription(tenant_id: UUID, current_user: User = BILLING_ADMIN):
     """
     Get current subscription for a tenant.
     
@@ -301,6 +317,7 @@ async def get_subscription(tenant_id: UUID):
     Returns:
         Subscription details
     """
+    _ensure_current_tenant(current_user, tenant_id)
     async with db_manager.get_session() as db:
         result = await db.execute(
             select(Subscription).where(
@@ -358,7 +375,8 @@ async def get_subscription(tenant_id: UUID):
 async def cancel_subscription(
     tenant_id: UUID,
     immediately: bool = False,
-    reason: Optional[str] = None
+    reason: Optional[str] = None,
+    current_user: User = BILLING_ADMIN,
 ):
     """
     Cancel a tenant's subscription.
@@ -371,6 +389,7 @@ async def cancel_subscription(
     Returns:
         Cancelled subscription details
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -411,7 +430,7 @@ async def cancel_subscription(
 
 
 @router.post("/subscriptions/{tenant_id}/reactivate")
-async def reactivate_subscription(tenant_id: UUID):
+async def reactivate_subscription(tenant_id: UUID, current_user: User = BILLING_ADMIN):
     """
     Reactivate a cancelled subscription.
     
@@ -421,6 +440,7 @@ async def reactivate_subscription(tenant_id: UUID):
     Returns:
         Reactivated subscription details
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -463,7 +483,8 @@ async def reactivate_subscription(tenant_id: UUID):
 @router.post("/checkout/session")
 async def create_checkout_session(
     data: CheckoutSessionCreate,
-    tenant_id: UUID  # In production, get from auth context
+    tenant_id: UUID,
+    current_user: User = BILLING_ADMIN,
 ):
     """
     Create a Stripe checkout session.
@@ -475,6 +496,7 @@ async def create_checkout_session(
     Returns:
         Checkout session URL
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -525,7 +547,8 @@ async def create_checkout_session(
 @router.get("/portal/{tenant_id}")
 async def create_portal_session(
     tenant_id: UUID,
-    return_url: str
+    return_url: str,
+    current_user: User = BILLING_ADMIN,
 ):
     """
     Create a billing portal session for self-service.
@@ -537,6 +560,7 @@ async def create_portal_session(
     Returns:
         Portal session URL
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -577,7 +601,8 @@ async def create_portal_session(
 async def list_invoices(
     tenant_id: UUID,
     limit: int = 10,
-    starting_after: Optional[str] = None
+    starting_after: Optional[str] = None,
+    current_user: User = BILLING_ADMIN,
 ):
     """
     List invoices for a tenant.
@@ -590,6 +615,7 @@ async def list_invoices(
     Returns:
         List of invoices
     """
+    _ensure_current_tenant(current_user, tenant_id)
     async with db_manager.get_session() as db:
         result = await db.execute(
             select(BillingInvoice)
@@ -620,7 +646,7 @@ async def list_invoices(
 
 
 @router.get("/invoices/{tenant_id}/{invoice_id}", response_model=InvoiceResponse)
-async def get_invoice(tenant_id: UUID, invoice_id: UUID):
+async def get_invoice(tenant_id: UUID, invoice_id: UUID, current_user: User = BILLING_ADMIN):
     """
     Get a specific invoice.
     
@@ -631,6 +657,7 @@ async def get_invoice(tenant_id: UUID, invoice_id: UUID):
     Returns:
         Invoice details
     """
+    _ensure_current_tenant(current_user, tenant_id)
     async with db_manager.get_session() as db:
         result = await db.execute(
             select(BillingInvoice).where(
@@ -668,7 +695,7 @@ async def get_invoice(tenant_id: UUID, invoice_id: UUID):
 # ========================================
 
 @router.get("/payment-methods/{tenant_id}")
-async def list_payment_methods(tenant_id: UUID):
+async def list_payment_methods(tenant_id: UUID, current_user: User = BILLING_ADMIN):
     """
     List payment methods for a tenant.
     
@@ -678,6 +705,7 @@ async def list_payment_methods(tenant_id: UUID):
     Returns:
         List of payment methods
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -708,7 +736,8 @@ async def list_payment_methods(tenant_id: UUID):
 @router.post("/payment-methods/{tenant_id}/attach")
 async def attach_payment_method(
     tenant_id: UUID,
-    data: PaymentMethodAttach
+    data: PaymentMethodAttach,
+    current_user: User = BILLING_ADMIN,
 ):
     """
     Attach a payment method to a tenant.
@@ -720,6 +749,7 @@ async def attach_payment_method(
     Returns:
         Attached payment method details
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -762,7 +792,7 @@ async def attach_payment_method(
 
 
 @router.delete("/payment-methods/{payment_method_id}")
-async def detach_payment_method(payment_method_id: str):
+async def detach_payment_method(payment_method_id: str, current_user: User = PLATFORM_ADMIN):
     """
     Detach a payment method.
     
@@ -853,7 +883,8 @@ async def stripe_webhook(
 @router.post("/trials/{tenant_id}/start")
 async def start_trial(
     tenant_id: UUID,
-    plan_type: str = "pro"
+    plan_type: str = "pro",
+    current_user: User = PLATFORM_ADMIN,
 ):
     """
     Start a trial period for a tenant.
@@ -865,6 +896,7 @@ async def start_trial(
     Returns:
         Trial details
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:
@@ -910,7 +942,8 @@ async def start_trial(
 @router.post("/trials/{tenant_id}/extend")
 async def extend_trial(
     tenant_id: UUID,
-    additional_days: int = 7
+    additional_days: int = 7,
+    current_user: User = PLATFORM_ADMIN,
 ):
     """
     Extend a trial period.
@@ -922,6 +955,7 @@ async def extend_trial(
     Returns:
         Updated trial details
     """
+    _ensure_current_tenant(current_user, tenant_id)
     billing_service = BillingService()
     
     async with db_manager.get_session() as db:

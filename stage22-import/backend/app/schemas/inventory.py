@@ -5,7 +5,7 @@ Nexus ERP - Inventory Schemas
 Pydantic schemas for inventory module API validation and serialization.
 """
 
-from datetime import datetime, date
+from datetime import datetime, date as Date
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 from uuid import UUID
@@ -20,7 +20,7 @@ class BaseSchema(BaseModel):
         use_enum_values=True,
         json_encoders={
             datetime: lambda v: v.isoformat() if v else None,
-            date: lambda v: v.isoformat() if v else None,
+            Date: lambda v: v.isoformat() if v else None,
             Decimal: lambda v: float(v) if v else None,
         }
     )
@@ -545,7 +545,7 @@ class StockQuantitySearchParams(BaseModel):
     location_id: Optional[UUID] = None
     low_stock: Optional[bool] = None
     out_of_stock: Optional[bool] = None
-    expiring_before: Optional[date] = None
+    expiring_before: Optional[Date] = None
 
 
 class StockOnHandReport(BaseModel):
@@ -564,7 +564,7 @@ class StockOnHandReport(BaseModel):
     
     lot_number: Optional[str] = None
     serial_number: Optional[str] = None
-    expiration_date: Optional[date] = None
+    expiration_date: Optional[Date] = None
 
 
 # ========================================
@@ -583,8 +583,8 @@ class StockMoveCreate(BaseModel):
     warehouse_to_id: Optional[UUID] = Field(None, description="Destination warehouse")
     
     move_type: str = Field(..., description="Move type")
-    date: date = Field(..., description="Move date")
-    date_expected: Optional[date] = Field(None, description="Expected date")
+    date: Date = Field(..., description="Move date")
+    date_expected: Optional[Date] = Field(None, description="Expected date")
     
     unit_cost: Decimal = Field(default=Decimal("0"), ge=0)
     
@@ -620,8 +620,8 @@ class StockMoveCreate(BaseModel):
 class StockMoveUpdate(BaseModel):
     """Schema for updating a stock move."""
     quantity: Optional[Decimal] = Field(None, gt=0)
-    date: Optional[date] = None
-    date_expected: Optional[date] = None
+    date: Optional[Date] = None
+    date_expected: Optional[Date] = None
     unit_cost: Optional[Decimal] = Field(None, ge=0)
     reason: Optional[str] = Field(None, max_length=255)
     notes: Optional[str] = None
@@ -653,8 +653,8 @@ class StockMoveResponse(BaseSchema):
     move_type: str
     state: str
     
-    date: date
-    date_expected: Optional[date] = None
+    date: Date
+    date_expected: Optional[Date] = None
     date_done: Optional[datetime] = None
     
     unit_cost: Decimal
@@ -731,7 +731,7 @@ class InventoryAdjustmentCreate(BaseModel):
     """Schema for creating an inventory adjustment."""
     location_id: UUID = Field(..., description="Location to adjust")
     warehouse_id: UUID = Field(..., description="Warehouse")
-    date: date = Field(..., description="Adjustment date")
+    date: Date = Field(..., description="Adjustment date")
     reason: Optional[str] = Field(None, max_length=255)
     notes: Optional[str] = None
     lines: List[AdjustmentLineCreate] = Field(..., min_length=1)
@@ -741,7 +741,7 @@ class InventoryAdjustmentResponse(BaseSchema):
     """Inventory adjustment response."""
     id: UUID
     number: str
-    date: date
+    date: Date
     
     location_id: UUID
     location: Optional[StockLocationResponse] = None
@@ -795,7 +795,7 @@ class StockValuationResponse(BaseSchema):
 
 class StockValuationReport(BaseModel):
     """Stock valuation report."""
-    date: date
+    date: Date
     warehouse_id: Optional[UUID] = None
     warehouse_name: Optional[str] = None
     

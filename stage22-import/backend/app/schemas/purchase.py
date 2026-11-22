@@ -5,7 +5,7 @@ Nexus ERP - Purchase Module Schemas
 Pydantic schemas for the Purchase module API.
 """
 
-from datetime import datetime, date
+from datetime import datetime, date as Date
 from typing import Optional, List
 from decimal import Decimal
 from uuid import UUID
@@ -53,7 +53,7 @@ class PurchaseOrderLineBase(BaseModel):
     price_unit: Decimal = Field(..., ge=0)
     discount: Decimal = Field(default=Decimal("0"), ge=0, le=100)
     tax_ids: List[str] = Field(default_factory=list)
-    date_planned: Optional[date] = None
+    date_planned: Optional[Date] = None
     analytic_account_id: Optional[UUID] = None
     notes: Optional[str] = None
 
@@ -72,7 +72,7 @@ class PurchaseOrderLineUpdate(BaseModel):
     price_unit: Optional[Decimal] = Field(None, ge=0)
     discount: Optional[Decimal] = Field(None, ge=0, le=100)
     tax_ids: Optional[List[str]] = None
-    date_planned: Optional[date] = None
+    date_planned: Optional[Date] = None
     analytic_account_id: Optional[UUID] = None
     notes: Optional[str] = None
 
@@ -103,8 +103,8 @@ class PurchaseOrderBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     partner_id: UUID
     partner_ref: Optional[str] = None
-    date_order: date
-    date_planned: Optional[date] = None
+    date_order: Date
+    date_planned: Optional[Date] = None
     incoterm_id: Optional[UUID] = None
     warehouse_id: Optional[UUID] = None
     purchaser_id: Optional[UUID] = None
@@ -125,8 +125,8 @@ class PurchaseOrderUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     partner_id: Optional[UUID] = None
     partner_ref: Optional[str] = None
-    date_order: Optional[date] = None
-    date_planned: Optional[date] = None
+    date_order: Optional[Date] = None
+    date_planned: Optional[Date] = None
     incoterm_id: Optional[UUID] = None
     warehouse_id: Optional[UUID] = None
     purchaser_id: Optional[UUID] = None
@@ -150,8 +150,8 @@ class PurchaseOrderResponse(PurchaseOrderBase):
     amount_billed: Decimal
     receipt_status: str
     invoice_status: str
-    date_confirm: Optional[date]
-    date_approve: Optional[date]
+    date_confirm: Optional[Date]
+    date_approve: Optional[Date]
     confirmed_at: Optional[datetime]
     done_at: Optional[datetime]
     created_at: datetime
@@ -184,7 +184,7 @@ class ReceiptLineBase(BaseModel):
     purchase_line_id: Optional[UUID] = None
     lot_id: Optional[UUID] = None
     lot_name: Optional[str] = None
-    expiration_date: Optional[date] = None
+    expiration_date: Optional[Date] = None
     notes: Optional[str] = None
 
 
@@ -202,7 +202,7 @@ class ReceiptLineUpdate(BaseModel):
     purchase_line_id: Optional[UUID] = None
     lot_id: Optional[UUID] = None
     lot_name: Optional[str] = None
-    expiration_date: Optional[date] = None
+    expiration_date: Optional[Date] = None
     notes: Optional[str] = None
 
 
@@ -229,7 +229,7 @@ class ReceiptBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     partner_id: UUID
     purchase_order_id: Optional[UUID] = None
-    date: date
+    date: Date
     warehouse_id: Optional[UUID] = None
     location_id: Optional[UUID] = None
     notes: Optional[str] = None
@@ -245,7 +245,7 @@ class ReceiptUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     partner_id: Optional[UUID] = None
     purchase_order_id: Optional[UUID] = None
-    date: Optional[date] = None
+    date: Optional[Date] = None
     warehouse_id: Optional[UUID] = None
     location_id: Optional[UUID] = None
     notes: Optional[str] = None
@@ -257,7 +257,7 @@ class ReceiptResponse(ReceiptBase):
     id: UUID
     number: str
     state: ReceiptStateEnum
-    date_done: Optional[date]
+    date_done: Optional[Date]
     confirmed_at: Optional[datetime]
     created_at: datetime
     updated_at: datetime
@@ -337,8 +337,8 @@ class PurchaseInvoiceBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     supplier_invoice_number: Optional[str] = None
     partner_id: UUID
-    date_invoice: date
-    date_due: Optional[date] = None
+    date_invoice: Date
+    date_due: Optional[Date] = None
     payment_term_id: Optional[UUID] = None
     currency_id: Optional[UUID] = None
     exchange_rate: Decimal = Field(default=Decimal("1"))
@@ -359,8 +359,8 @@ class PurchaseInvoiceUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     supplier_invoice_number: Optional[str] = None
     partner_id: Optional[UUID] = None
-    date_invoice: Optional[date] = None
-    date_due: Optional[date] = None
+    date_invoice: Optional[Date] = None
+    date_due: Optional[Date] = None
     payment_term_id: Optional[UUID] = None
     currency_id: Optional[UUID] = None
     exchange_rate: Optional[Decimal] = None
@@ -383,7 +383,7 @@ class PurchaseInvoiceResponse(PurchaseInvoiceBase):
     amount_total: Decimal
     amount_residual: Decimal
     amount_paid: Decimal
-    date_posted: Optional[date]
+    date_posted: Optional[Date]
     posted_at: Optional[datetime]
     journal_entry_id: Optional[UUID]
     created_at: datetime
@@ -416,17 +416,17 @@ class PurchaseOrderConfirmRequest(BaseModel):
 class ReceiptConfirmRequest(BaseModel):
     """Schema for confirming receipt."""
     create_invoice: bool = Field(default=False)
-    date_done: Optional[date] = None
+    date_done: Optional[Date] = None
 
 
 class PurchaseInvoicePostRequest(BaseModel):
     """Schema for posting purchase invoice."""
-    date_posted: Optional[date] = None
+    date_posted: Optional[Date] = None
 
 
 class CreateReceiptFromPORequest(BaseModel):
     """Schema for creating receipt from purchase order."""
-    date: Optional[date] = None
+    date: Optional[Date] = None
     warehouse_id: Optional[UUID] = None
     location_id: Optional[UUID] = None
     lines: Optional[List[dict]] = None  # [{"purchase_line_id": UUID, "quantity": Decimal}]
@@ -435,7 +435,7 @@ class CreateReceiptFromPORequest(BaseModel):
 class CreateInvoiceFromReceiptRequest(BaseModel):
     """Schema for creating invoice from receipt."""
     receipt_id: UUID
-    date_invoice: Optional[date] = None
+    date_invoice: Optional[Date] = None
 
 
 # ========================================
@@ -493,7 +493,7 @@ class SupplierPaymentAllocationInput(BaseModel):
 
 class SupplierPaymentRegisterRequest(BaseModel):
     supplier_id: UUID
-    payment_date: date
+    payment_date: Date
     amount: Decimal = Field(..., gt=0, allow_inf_nan=False)
     journal_id: UUID
     bank_account_id: UUID
@@ -503,7 +503,7 @@ class SupplierPaymentRegisterRequest(BaseModel):
 
 
 class SupplierPaymentCancelRequest(BaseModel):
-    reversal_date: Optional[date] = None
+    reversal_date: Optional[Date] = None
     reason: str = Field(..., min_length=3, max_length=500)
 
 
@@ -511,7 +511,7 @@ class SupplierPaymentResponse(BaseModel):
     id: UUID
     number: str
     partner_id: UUID
-    payment_date: date
+    payment_date: Date
     amount: Decimal
     currency_id: Optional[UUID]
     journal_id: UUID

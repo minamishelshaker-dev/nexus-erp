@@ -14,12 +14,13 @@ Features:
 - Customer segmentation
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from sqlalchemy import (
     Column,
     String,
     Boolean,
     DateTime,
+    Date,
     Text,
     ForeignKey,
     Numeric,
@@ -762,7 +763,7 @@ class Lead(BaseModel, TenantMixin):
     )
     
     phone: Optional[str] = Column(
-        String(20),
+        String(50),
         nullable=True,
         doc="Phone number"
     )
@@ -804,14 +805,14 @@ class Lead(BaseModel, TenantMixin):
     # Lead Details
     # ========================================
     status: LeadStatus = Column(
-        SQLEnum(LeadStatus),
+        SQLEnum(LeadStatus, native_enum=False, values_callable=lambda enum_cls: [item.value for item in enum_cls], length=50),
         default=LeadStatus.NEW,
         nullable=False,
         doc="Current lead status"
     )
     
     source: Optional[LeadSource] = Column(
-        SQLEnum(LeadSource),
+        SQLEnum(LeadSource, native_enum=False, values_callable=lambda enum_cls: [item.value for item in enum_cls], length=100),
         nullable=True,
         doc="Lead source"
     )
@@ -1003,7 +1004,7 @@ class Opportunity(BaseModel, TenantMixin):
     # Pipeline
     # ========================================
     stage: OpportunityStage = Column(
-        SQLEnum(OpportunityStage),
+        SQLEnum(OpportunityStage, native_enum=False, values_callable=lambda enum_cls: [item.value for item in enum_cls], length=50),
         default=OpportunityStage.PROSPECTING,
         nullable=False,
         doc="Current stage"
@@ -1079,8 +1080,8 @@ class Opportunity(BaseModel, TenantMixin):
     # ========================================
     # Dates
     # ========================================
-    expected_close_date: Optional[datetime] = Column(
-        DateTime(timezone=True),
+    expected_close_date: Optional[date] = Column(
+        Date,
         nullable=True,
         doc="Expected close date"
     )

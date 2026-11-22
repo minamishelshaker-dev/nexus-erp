@@ -13,6 +13,7 @@ Features:
 - Reviewed Alembic migrations (no runtime create_all)
 """
 
+from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     create_async_engine,
@@ -48,13 +49,25 @@ class DatabaseManager:
         
         Should be called during application startup.
         """
-        self._engine = create_async_engine(
-            settings.DATABASE_URL,
-            pool_size=settings.DATABASE_POOL_SIZE,
-            max_overflow=settings.DATABASE_MAX_OVERFLOW,
-            echo=settings.DEBUG,
-            future=True,
-        )
+        if settings.DATABASE_POOLER_MODE == "transaction":
+            # Supabase transaction pooler is designed for serverless workloads.
+            # Disable prepared statements and local pooling for compatibility.
+            self._engine = create_async_engine(
+                settings.DATABASE_URL,
+                poolclass=NullPool,
+                connect_args={"prepared_statement_cache_size": 0, "ssl": "require"},
+                echo=settings.DEBUG,
+                future=True,
+            )
+        else:
+            self._engine = create_async_engine(
+                settings.DATABASE_URL,
+                pool_size=settings.DATABASE_POOL_SIZE,
+                max_overflow=settings.DATABASE_MAX_OVERFLOW,
+                pool_pre_ping=True,
+                echo=settings.DEBUG,
+                future=True,
+            )
         
         self._session_factory = async_sessionmaker(
             bind=self._engine,

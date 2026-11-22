@@ -15,7 +15,7 @@ Features:
 
 from datetime import datetime, date, timedelta
 from decimal import Decimal
-from typing import Optional, List, Dict, Any, AsyncGenerator, Callable
+from typing import Optional, List, Dict, Any, AsyncGenerator, Callable, Tuple
 from uuid import UUID, uuid4
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_, desc

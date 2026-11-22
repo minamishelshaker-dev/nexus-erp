@@ -8,7 +8,7 @@ Includes fixtures for database, authentication, and test data creation.
 
 import pytest
 import asyncio
-from typing import AsyncGenerator, Generator, Dict, Any, Optional
+from typing import AsyncGenerator, Generator, Dict, Any, Optional, Tuple
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.pool import NullPool

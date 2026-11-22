@@ -200,14 +200,14 @@ class Tenant(BaseModel):
     # Subscription & Billing
     # ========================================
     status: TenantStatus = Column(
-        SQLEnum(TenantStatus),
+        SQLEnum(TenantStatus, name="tenant_status", values_callable=lambda enum_cls: [item.value for item in enum_cls]),
         default=TenantStatus.TRIAL,
         nullable=False,
         doc="Current tenant status"
     )
     
     plan_type: PlanType = Column(
-        SQLEnum(PlanType),
+        SQLEnum(PlanType, name="plan_type", values_callable=lambda enum_cls: [item.value for item in enum_cls]),
         default=PlanType.BASIC,
         nullable=False,
         doc="Subscription plan type"
@@ -735,7 +735,7 @@ class Plan(BaseModel):
     )
     
     plan_type: PlanType = Column(
-        SQLEnum(PlanType),
+        SQLEnum(PlanType, name="plan_type", values_callable=lambda enum_cls: [item.value for item in enum_cls]),
         nullable=False,
         doc="Plan type classification"
     )
@@ -1059,7 +1059,7 @@ class AuditLog(BaseModel):
     # Action Details
     # ========================================
     action: AuditAction = Column(
-        SQLEnum(AuditAction),
+        SQLEnum(AuditAction, name="audit_action", values_callable=lambda enum_cls: [item.value for item in enum_cls]),
         nullable=False,
         doc="Type of action performed"
     )

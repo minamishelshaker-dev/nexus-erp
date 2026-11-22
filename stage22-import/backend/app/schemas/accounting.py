@@ -5,7 +5,7 @@ Nexus ERP - Accounting Schemas
 Pydantic schemas for accounting module API validation and serialization.
 """
 
-from datetime import datetime, date
+from datetime import datetime, date as Date
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 from uuid import UUID
@@ -21,7 +21,7 @@ class BaseSchema(BaseModel):
         use_enum_values=True,
         json_encoders={
             datetime: lambda v: v.isoformat() if v else None,
-            date: lambda v: v.isoformat() if v else None,
+            Date: lambda v: v.isoformat() if v else None,
             Decimal: lambda v: float(v) if v else None,
         }
     )
@@ -168,13 +168,13 @@ class JournalItemResponse(BaseSchema):
     name: Optional[str] = None
     partner_id: Optional[UUID] = None
     analytic_account_id: Optional[UUID] = None
-    date: date
+    date: Date
     notes: Optional[str] = None
 
 
 class JournalEntryCreate(BaseModel):
     """Schema for creating a journal entry."""
-    date: date = Field(..., description="Entry date")
+    date: Date = Field(..., description="Entry date")
     ref: Optional[str] = Field(None, max_length=100, description="Reference number")
     move_type: str = Field(default="manual", description="Entry type")
     journal_id: Optional[UUID] = Field(None, description="Journal ID")
@@ -198,7 +198,7 @@ class JournalEntryCreate(BaseModel):
 
 class JournalEntryUpdate(BaseModel):
     """Schema for updating a journal entry."""
-    date: Optional[date] = None
+    date: Optional[Date] = None
     ref: Optional[str] = Field(None, max_length=100)
     description: Optional[str] = None
     narration: Optional[str] = None
@@ -220,7 +220,7 @@ class JournalEntryResponse(BaseSchema):
     id: UUID
     number: str
     ref: Optional[str] = None
-    date: date
+    date: Date
     move_type: str
     state: str
     journal_id: Optional[UUID] = None
@@ -267,7 +267,7 @@ class JournalEntryPostRequest(BaseModel):
 
 class JournalEntryReverseRequest(BaseModel):
     """Request to reverse a journal entry."""
-    date: Optional[date] = Field(None, description="Reversal date")
+    date: Optional[Date] = Field(None, description="Reversal date")
     reason: Optional[str] = Field(None, description="Reversal reason")
 
 
@@ -277,7 +277,7 @@ class JournalEntryReverseRequest(BaseModel):
 
 class GeneralLedgerLine(BaseSchema):
     """Single line in general ledger report."""
-    date: date
+    date: Date
     entry_number: str
     entry_id: UUID
     account_code: str
@@ -295,8 +295,8 @@ class GeneralLedgerRequest(BaseModel):
     """Request for general ledger report."""
     account_id: Optional[UUID] = Field(None, description="Filter by account")
     account_codes: Optional[List[str]] = Field(None, description="Filter by account codes")
-    date_from: date = Field(..., description="Start date")
-    date_to: date = Field(..., description="End date")
+    date_from: Date = Field(..., description="Start date")
+    date_to: Date = Field(..., description="End date")
     partner_id: Optional[UUID] = Field(None, description="Filter by partner")
     include_opening: bool = Field(default=True, description="Include opening balance")
     
@@ -312,8 +312,8 @@ class GeneralLedgerResponse(BaseModel):
     account_id: Optional[UUID] = None
     account_code: Optional[str] = None
     account_name: Optional[str] = None
-    date_from: date
-    date_to: date
+    date_from: Date
+    date_to: Date
     
     opening_debit: Decimal = Decimal("0")
     opening_credit: Decimal = Decimal("0")
@@ -349,16 +349,16 @@ class TrialBalanceLine(BaseSchema):
 
 class TrialBalanceRequest(BaseModel):
     """Request for trial balance report."""
-    date_from: date = Field(..., description="Start date")
-    date_to: date = Field(..., description="End date")
+    date_from: Date = Field(..., description="Start date")
+    date_to: Date = Field(..., description="End date")
     include_zero_balances: bool = Field(default=False)
     group_by_type: bool = Field(default=True)
 
 
 class TrialBalanceResponse(BaseModel):
     """Trial balance report response."""
-    date_from: date
-    date_to: date
+    date_from: Date
+    date_to: Date
     generated_at: datetime
     
     total_opening_debit: Decimal = Decimal("0")
@@ -392,19 +392,19 @@ class IncomeStatementSection(BaseSchema):
 
 class IncomeStatementRequest(BaseModel):
     """Request for income statement."""
-    date_from: date = Field(..., description="Start date")
-    date_to: date = Field(..., description="End date")
-    comparison_date_from: Optional[date] = Field(None, description="Comparison period start")
-    comparison_date_to: Optional[date] = Field(None, description="Comparison period end")
+    date_from: Date = Field(..., description="Start date")
+    date_to: Date = Field(..., description="End date")
+    comparison_date_from: Optional[Date] = Field(None, description="Comparison period start")
+    comparison_date_to: Optional[Date] = Field(None, description="Comparison period end")
     show_percentages: bool = Field(default=True)
 
 
 class IncomeStatementResponse(BaseModel):
     """Income statement response."""
-    date_from: date
-    date_to: date
-    comparison_date_from: Optional[date] = None
-    comparison_date_to: Optional[date] = None
+    date_from: Date
+    date_to: Date
+    comparison_date_from: Optional[Date] = None
+    comparison_date_to: Optional[Date] = None
     generated_at: datetime
     
     revenue: IncomeStatementSection
@@ -442,15 +442,15 @@ class BalanceSheetSection(BaseSchema):
 
 class BalanceSheetRequest(BaseModel):
     """Request for balance sheet."""
-    date: date = Field(..., description="As of date")
-    comparison_date: Optional[date] = Field(None, description="Comparison date")
+    date: Date = Field(..., description="As of date")
+    comparison_date: Optional[Date] = Field(None, description="Comparison date")
     show_percentages: bool = Field(default=True)
 
 
 class BalanceSheetResponse(BaseModel):
     """Balance sheet response."""
-    date: date
-    comparison_date: Optional[date] = None
+    date: Date
+    comparison_date: Optional[Date] = None
     generated_at: datetime
     
     # Assets
@@ -480,8 +480,8 @@ class BalanceSheetResponse(BaseModel):
 class FiscalYearCreate(BaseModel):
     """Schema for creating a fiscal year."""
     name: str = Field(..., max_length=100)
-    start_date: date
-    end_date: date
+    start_date: Date
+    end_date: Date
     
     @model_validator(mode='after')
     def validate_dates(self):
@@ -494,8 +494,8 @@ class FiscalYearResponse(BaseSchema):
     """Fiscal year response."""
     id: UUID
     name: str
-    start_date: date
-    end_date: date
+    start_date: Date
+    end_date: Date
     is_closed: bool
     closed_at: Optional[datetime] = None
     periods: List["FiscalPeriodResponse"] = []
@@ -507,8 +507,8 @@ class FiscalPeriodResponse(BaseSchema):
     fiscal_year_id: UUID
     name: str
     period_number: int
-    start_date: date
-    end_date: date
+    start_date: Date
+    end_date: Date
     is_closed: bool
     is_adjustment: bool
 
@@ -596,8 +596,8 @@ FiscalYearResponse.model_rebuild()
 class BankStatementCreate(BaseModel):
     account_id: UUID
     statement_number: str = Field(..., min_length=1, max_length=100)
-    start_date: date
-    end_date: date
+    start_date: Date
+    end_date: Date
     opening_balance: Decimal
     closing_balance: Decimal
     currency_code: Optional[str] = Field(None, min_length=3, max_length=3)
@@ -606,8 +606,8 @@ class BankStatementCreate(BaseModel):
 
 class BankStatementLineCreate(BaseModel):
     line_number: int = Field(..., ge=1)
-    transaction_date: date
-    value_date: Optional[date] = None
+    transaction_date: Date
+    value_date: Optional[Date] = None
     description: str = Field(..., min_length=1, max_length=500)
     external_reference: Optional[str] = Field(None, max_length=150)
     debit: Decimal = Field(default=Decimal("0"), ge=0)

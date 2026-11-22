@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     DATABASE_POOL_SIZE: int = 20
     DATABASE_MAX_OVERFLOW: int = 10
+    DATABASE_POOLER_MODE: str = "session"
     
     # ========================================
     # Redis Settings
@@ -72,6 +73,8 @@ class Settings(BaseSettings):
     # CORS Settings
     # ========================================
     CORS_ORIGINS: List[str] = ["http://localhost:3000"]
+    CORS_ORIGIN_REGEX: Optional[str] = None
+    ALLOWED_HOSTS: List[str] = ["*.nexus-erp.com", "*.vercel.app", "localhost"]
     CORS_ALLOW_CREDENTIALS: bool = True
     CORS_ALLOW_METHODS: List[str] = ["*"]
     CORS_ALLOW_HEADERS: List[str] = ["*"]

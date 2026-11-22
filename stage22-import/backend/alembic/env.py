@@ -1,6 +1,7 @@
 """Alembic environment configured for the application's async SQLAlchemy engine."""
 
 import asyncio
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -33,11 +34,56 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection) -> None:
-    context.configure(
-        connection=connection,
-        target_metadata=target_metadata,
-        compare_type=True,
-    )
+    configure_options = {
+        "connection": connection,
+        "target_metadata": target_metadata,
+        "compare_type": True,
+    }
+
+    # Diagnostic mode: generate CREATE TABLE operations only for ORM tables
+    # absent from the disposable database. Never emit drops or alterations
+    # against existing tables while preparing the missing-table inventory.
+    if os.getenv("ALEMBIC_CREATE_MISSING_TABLES_ONLY") == "1":
+        from sqlalchemy import inspect
+
+        existing_tables = set(inspect(connection).get_table_names(schema="public"))
+        missing_tables = set(target_metadata.tables) - existing_tables
+
+        def include_object(obj, name, type_, reflected, compare_to):
+            if type_ == "table":
+                return name in missing_tables and not reflected
+            if type_ == "foreign_key_constraint" and not reflected:
+                # Existing tables may gain an FK only after its referenced
+                # missing table is created (for example users.department_id).
+                targets = {
+                    element.target_fullname.split(".")[0]
+                    for element in obj.elements
+                }
+                return bool(targets & missing_tables)
+
+            parent_table = getattr(obj, "table", None)
+            if parent_table is not None:
+                return parent_table.name in missing_tables
+            return True
+
+        configure_options["include_object"] = include_object
+
+    elif os.getenv("ALEMBIC_ADDITIVE_PARITY_ONLY") == "1":
+        def include_object(obj, name, type_, reflected, compare_to):
+            # Keep ORM-backed tables, but ignore database-only legacy tables.
+            if type_ == "table":
+                return not reflected
+            # Only create missing metadata objects; never drop or alter existing
+            # columns, indexes, constraints, or types in this mode.
+            if type_ == "column":
+                return not reflected and compare_to is None
+            if type_ in {"index", "unique_constraint", "foreign_key_constraint", "check_constraint"}:
+                return not reflected and compare_to is None
+            return True
+
+        configure_options["include_object"] = include_object
+
+    context.configure(**configure_options)
     with context.begin_transaction():
         context.run_migrations()
 
