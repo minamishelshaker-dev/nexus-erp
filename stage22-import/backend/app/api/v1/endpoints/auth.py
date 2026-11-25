@@ -178,7 +178,6 @@ async def login(
         user_agent=request.headers.get("user-agent", ""),
         device_type=_detect_device_type(request.headers.get("user-agent", "")),
         expires_at=datetime.utcnow() + timedelta(days=7 if login_data.remember_me else 1),
-        tenant_id=user.tenant_id,
     )
     db.add(session)
     
@@ -195,7 +194,6 @@ async def login(
         description="User logged in successfully",
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("user-agent", ""),
-        tenant_id=user.tenant_id,
     )
     db.add(activity)
     
@@ -322,7 +320,6 @@ async def logout(
         action="logout",
         description="User logged out",
         ip_address=request.client.host if request.client else None,
-        tenant_id=current_user.tenant_id,
     )
     db.add(activity)
     
